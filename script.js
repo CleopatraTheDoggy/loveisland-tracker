@@ -2,7 +2,9 @@
 
 const DUMPED_CONTESTANTS = {
     "parm3_sean": "2026-06-08T03:05:25.446900Z",
-    "bhatz_track": "2026-06-13T03:37:19.090869Z"
+    "bhatz_track": "2026-06-13T03:37:19.090869Z",
+    "itssoll": "2026-06-19T03:08:29.699441Z",
+    "gvasconcelosv": "2026-06-19T03:08:29.699441Z"
 };
 
 const BOMBSHELL_CONTESTANTS = {
