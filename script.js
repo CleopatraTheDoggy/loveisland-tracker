@@ -506,7 +506,7 @@ const EXPELLED = [
             chartInstance.destroy();
         }
         
-        const initialTextColor = isDark ? '#e2e8f0' : '#475569';
+        const currentTextColor = isDark ? '#e2e8f0' : '#475569';
         
         chartInstance = new Chart(ctx, {
             type: 'line',
@@ -523,12 +523,14 @@ const EXPELLED = [
                     legend: {
                         position: 'bottom',
                         labels: {
-                            color: initialTextColor,
+                            color: currentTextColor,
                             usePointStyle: true,
                             boxWidth: 16,
                             padding: 20,
                             font: { family: 'Inter', size: 12 },
                             generateLabels: function(chart) {
+                                // Forcing the current text color directly into the fontColor property
+                                // of each generated label overrides Chart.js's default inheritance quirks.
                                 return chart.data.datasets.map((dataset, i) => ({
                                     text: dataset.label,
                                     fillStyle: dataset.backgroundColor,
@@ -536,7 +538,8 @@ const EXPELLED = [
                                     lineWidth: dataset.borderWidth,
                                     pointStyle: dataset.legendPointStyle || 'circle',
                                     hidden: !chart.isDatasetVisible(i),
-                                    datasetIndex: i
+                                    datasetIndex: i,
+                                    fontColor: isDark ? '#e2e8f0' : '#475569' 
                                 }));
                             }
                         }
