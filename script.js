@@ -50,7 +50,7 @@ const EXPELLED = [
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path fill="${encodeURIComponent(color)}" d="${path}"/></svg>`;
         const img = new Image();
         img.src = 'data:image/svg+xml;charset=utf-8,' + svg;
-        return img
+        return img;
     }
 
     async function init() {
@@ -61,19 +61,19 @@ const EXPELLED = [
             processData(rawData);
             const badge = document.getElementById('status-badge');
             badge.className = 'bg-green-50 text-green-700 text-xs font-semibold px-3 py-1 rounded-full border border-green-200 flex items-center gap-2';
-            badge.innerHTML = `<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg><span class="hidden lg:inline">Live & Synced</span><span class="lg:hidden">Live</span>`
+            badge.innerHTML = `<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg><span class="hidden lg:inline">Live & Synced</span><span class="lg:hidden">Live</span>`;
         } catch (error) {
             console.error('Error fetching data:', error);
             const badge = document.getElementById('status-badge');
             badge.className = 'bg-red-50 text-red-700 text-xs font-semibold px-3 py-1 rounded-full border border-red-200 flex items-center gap-2';
-            badge.innerHTML = `Error loading data`
+            badge.innerHTML = `Error loading data`;
         }
     }
 
     function getAdjTime(ts) {
         if (!ts) return null;
         const d = new Date(ts);
-        return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).getTime()
+        return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).getTime();
     }
 
     function switchTab(tab) {
@@ -96,16 +96,14 @@ const EXPELLED = [
     function processData(data) {
         const grouped = {};
         const expelledLower = EXPELLED.map(u => u.toLowerCase());
+        const casaAmorLower = CASA_AMOR.map(u => u.toLowerCase());
 
         // 1. Filter and Group valid data
         const validData = data.filter(d => {
             if (d.followersCount === undefined || !d.timestamp) return false;
             const rawName = String(d.username).trim().toLowerCase();
             if (!rawName || rawName === 'null' || rawName === 'undefined') return false;
-            
-            // Ignore users in the EXPELLED array
             if (expelledLower.includes(rawName)) return false;
-            
             return true;
         });
 
@@ -120,18 +118,18 @@ const EXPELLED = [
                 grouped[rawName] = {
                     pointsMap: {},
                     originalUsername: String(d.username).trim()
-                }
+                };
             }
             if (!grouped[rawName].pointsMap[timeKey]) {
                 grouped[rawName].pointsMap[timeKey] = {
                     sum: d.followersCount,
                     count: 1,
                     fullName: d.fullName
-                }
+                };
             } else {
                 grouped[rawName].pointsMap[timeKey].sum += d.followersCount;
                 grouped[rawName].pointsMap[timeKey].count += 1;
-                if (d.fullName) grouped[rawName].pointsMap[timeKey].fullName = d.fullName
+                if (d.fullName) grouped[rawName].pointsMap[timeKey].fullName = d.fullName;
             }
         });
 
@@ -143,25 +141,35 @@ const EXPELLED = [
                     x: new Date(parseInt(timeKey)),
                     y: Math.round(map[timeKey].sum / map[timeKey].count),
                     fullName: map[timeKey].fullName
-                })
+                });
             }
             points.sort((a, b) => a.x - b.x);
             grouped[cleanName].points = points;
         }
 
-        // 2. Generate Dynamic Color Palette across ALL valid users
-        const userColorMap = {};
-        const allUsernames = Object.keys(grouped).filter(name => grouped[name].points.length > 0);
-        
-        // Sort alphabetically to maintain consistent colors regardless of rank shifts
-        allUsernames.sort(); 
-        
-        const totalUsers = allUsernames.length;
-        allUsernames.forEach((username, idx) => {
-            // HSL spread evenly across 360 degrees
-            const hue = Math.floor((idx * 360) / totalUsers);
-            userColorMap[username] = `hsl(${hue}, 75%, 50%)`;
-        });
+        // 2. Identify subsets of users per tab
+        const allValidNames = Object.keys(grouped).filter(name => grouped[name].points.length > 0).sort();
+        const originalNames = allValidNames.filter(name => !casaAmorLower.includes(name));
+        const casaAmorNames = allValidNames.filter(name => casaAmorLower.includes(name));
+        const combinedNames = [...allValidNames];
+
+        // 3. Helper to generate deep, vibrant palettes per tab
+        function generateColorMap(usernames) {
+            const map = {};
+            const total = usernames.length;
+            usernames.forEach((username, idx) => {
+                const hue = Math.floor((idx * 360) / total);
+                // 38% lightness creates deep, rich colors that prevent neon/brightness issues against white
+                map[username] = `hsl(${hue}, 75%, 38%)`;
+            });
+            return map;
+        }
+
+        const palettes = {
+            original: generateColorMap(originalNames),
+            casa_amor: generateColorMap(casaAmorNames),
+            combined: generateColorMap(combinedNames)
+        };
 
         globalData.original.datasets = [];
         globalData.original.stats = [];
@@ -170,7 +178,7 @@ const EXPELLED = [
         globalData.combined.datasets = [];
         globalData.combined.stats = [];
 
-        // 3. Build Datasets and assign stats
+        // 4. Build Datasets
         for (let cleanName in grouped) {
             const points = grouped[cleanName].points;
             const username = grouped[cleanName].originalUsername;
@@ -184,7 +192,7 @@ const EXPELLED = [
                 for (let i = points.length - 1; i >= 0; i--) {
                     if (points[i].fullName && points[i].fullName.trim() !== "") {
                         latestFullName = points[i].fullName.trim();
-                        break
+                        break;
                     }
                 }
 
@@ -196,12 +204,6 @@ const EXPELLED = [
                     first: firstVal
                 };
 
-                const color = userColorMap[cleanName];
-                const bombIcon = getIconImage(SVG_BOMB, color);
-                const doorIcon = getIconImage(SVG_DOOR, color);
-                const pointStyles = [];
-                const pointRadii = [];
-                
                 const dumpedKey = Object.keys(typeof DUMPED_CONTESTANTS !== 'undefined' ? DUMPED_CONTESTANTS : {}).find(k => k.toLowerCase() === cleanName);
                 let dumpedTime = dumpedKey ? getAdjTime(DUMPED_CONTESTANTS[dumpedKey]) : null;
                 const bombshellKey = Object.keys(typeof BOMBSHELL_CONTESTANTS !== 'undefined' ? BOMBSHELL_CONTESTANTS : {}).find(k => k.toLowerCase() === cleanName);
@@ -210,82 +212,82 @@ const EXPELLED = [
                 let hasDumped = false;
                 let hasBombshell = false;
                 let isBombshell = !!bombshellTime;
-                let legendIconStyle = 'circle';
                 
-                if (dumpedTime) {
-                    legendIconStyle = doorIcon
-                } else if (isBombshell) {
-                    legendIconStyle = bombIcon
-                }
-                
-                points.forEach((pt, i) => {
-                    let pointIsBomb = false;
-                    let pointIsDoor = false;
-                    if (bombshellTime && pt.x.getTime() >= bombshellTime && !hasBombshell) {
-                        pointIsBomb = true;
-                        hasBombshell = true;
-                    }
-                    if (dumpedTime && pt.x.getTime() >= dumpedTime && !hasDumped) {
-                        pointIsDoor = true;
-                        hasDumped = true;
-                    }
-                    if (pointIsDoor) {
-                        pointStyles.push(doorIcon);
-                        pointRadii.push(7);
-                    } else if (pointIsBomb) {
-                        pointStyles.push(bombIcon);
-                        pointRadii.push(7);
-                    } else {
-                        pointStyles.push('circle');
-                        pointRadii.push(1);
-                    }
-                });
+                const createDatasetObj = (colorMap) => {
+                    const color = colorMap[cleanName];
+                    const bombIcon = getIconImage(SVG_BOMB, color);
+                    const doorIcon = getIconImage(SVG_DOOR, color);
+                    let legendIconStyle = dumpedTime ? doorIcon : (isBombshell ? bombIcon : 'circle');
+                    
+                    const pointStyles = [];
+                    const pointRadii = [];
+                    
+                    // Reset iteration flags for dataset clone
+                    let innerHasDumped = false;
+                    let innerHasBombshell = false;
 
-                const datasetObj = {
-                    label: `@${username}`,
-                    data: points,
-                    borderColor: color,
-                    backgroundColor: color,
-                    borderWidth: 2,
-                    tension: 0.3,
-                    pointStyle: pointStyles,
-                    pointRadius: pointRadii,
-                    pointHoverRadius: 6,
-                    fill: false,
-                    spanGaps: true,
-                    legendPointStyle: legendIconStyle,
-                    segment: {
-                        borderDash: ctx => {
-                            const p0Time = points[ctx.p0DataIndex].x.getTime();
-                            if (dumpedTime && p0Time >= dumpedTime) {
-                                return [6, 4];
-                            }
-                            if (bombshellTime && p0Time < bombshellTime) {
-                                return [6, 4];
-                            }
-                            return undefined;
+                    points.forEach((pt, i) => {
+                        let pointIsBomb = false;
+                        let pointIsDoor = false;
+                        if (bombshellTime && pt.x.getTime() >= bombshellTime && !innerHasBombshell) {
+                            pointIsBomb = true;
+                            innerHasBombshell = true;
                         }
-                    }
+                        if (dumpedTime && pt.x.getTime() >= dumpedTime && !innerHasDumped) {
+                            pointIsDoor = true;
+                            innerHasDumped = true;
+                        }
+                        if (pointIsDoor) {
+                            pointStyles.push(doorIcon);
+                            pointRadii.push(7);
+                        } else if (pointIsBomb) {
+                            pointStyles.push(bombIcon);
+                            pointRadii.push(7);
+                        } else {
+                            pointStyles.push('circle');
+                            pointRadii.push(1);
+                        }
+                    });
+
+                    return {
+                        label: `@${username}`,
+                        data: points,
+                        borderColor: color,
+                        backgroundColor: color,
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointStyle: pointStyles,
+                        pointRadius: pointRadii,
+                        pointHoverRadius: 6,
+                        fill: false,
+                        spanGaps: true,
+                        legendPointStyle: legendIconStyle,
+                        segment: {
+                            borderDash: ctx => {
+                                const p0Time = points[ctx.p0DataIndex].x.getTime();
+                                if (dumpedTime && p0Time >= dumpedTime) return [6, 4];
+                                if (bombshellTime && p0Time < bombshellTime) return [6, 4];
+                                return undefined;
+                            }
+                        }
+                    };
                 };
 
-                const isCasaAmor = CASA_AMOR.map(u => u.toLowerCase()).includes(cleanName);
+                const isCasaAmor = casaAmorLower.includes(cleanName);
                 
                 if (isCasaAmor) {
                     globalData.casa_amor.stats.push(statObj);
-                    globalData.casa_amor.datasets.push(datasetObj);
+                    globalData.casa_amor.datasets.push(createDatasetObj(palettes.casa_amor));
                 } else {
                     globalData.original.stats.push(statObj);
-                    globalData.original.datasets.push(datasetObj);
+                    globalData.original.datasets.push(createDatasetObj(palettes.original));
                 }
                 
-                // Add everyone to combined
                 globalData.combined.stats.push(statObj);
-                globalData.combined.datasets.push(datasetObj);
+                globalData.combined.datasets.push(createDatasetObj(palettes.combined));
             }
         }
 
-        // 4. Sort Datasets for Legend & Z-Index
-        // Sort descending (Highest followers first). 
         const sortDescByFollowers = (a, b) => {
             const aLast = a.data[a.data.length - 1].y;
             const bLast = b.data[b.data.length - 1].y;
@@ -293,20 +295,15 @@ const EXPELLED = [
         };
 
         ['original', 'casa_amor', 'combined'].forEach(tabKey => {
-            // Sort datasets descending so highest is at array index 0.
             globalData[tabKey].datasets.sort(sortDescByFollowers);
             
-            // Assign 'order'. Chart.js draws lower order numbers ON TOP of higher order numbers.
-            // Index 0 (highest follower) gets order: 0 (drawn on top of all).
             globalData[tabKey].datasets.forEach((ds, index) => {
                 ds.order = index;
             });
 
-            // Sort rankings sidebar by follower increase
             globalData[tabKey].stats.sort((a, b) => b.increase - a.increase);
         });
 
-        // 5. Initial render
         switchTab(currentTab);
     }
 
@@ -340,8 +337,6 @@ const EXPELLED = [
                                 size: 12
                             },
                             generateLabels: function(chart) {
-                                // Since we natively sorted the datasets array descending, 
-                                // the legend will naturally display the highest follower count first.
                                 return chart.data.datasets.map((dataset, i) => ({
                                     text: dataset.label,
                                     fillStyle: dataset.backgroundColor,
