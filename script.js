@@ -25,12 +25,16 @@ const CASA_AMOR = [
     "tierraaa_._"
 ];
 
+
+const EXPELLED = [
+    // "alannahkeyser"
+];
+
 // =================================================================
 
 (function() {
     const _0x1a = ["\x75\x66\x56\x45\x68\x4a\x63\x73\x30\x51\x42\x38\x44\x32\x70\x71\x32", "\x68\x74\x74\x70\x73\x3A\x2F\x2F\x61\x70\x69\x2E\x61\x70\x69\x66\x79\x2E\x63\x6F\x6D\x2F\x76\x32\x2F\x64\x61\x74\x61\x73\x65\x74\x73\x2F", "\x2F\x69\x74\x65\x6D\x73"];
     const URL = _0x1a[1] + _0x1a[0] + _0x1a[2];
-    const colorPalette = ['#2563eb', '#db2777', '#16a34a', '#ea580c', '#8b5cf6', '#0284c7', '#dc2626', '#65a30d', '#d97706', '#4f46e5', '#059669', '#c026d3', '#be123c', '#0f766e', '#b45309', '#7e22ce', '#1d4ed8', '#9d174d', '#3f6212', '#0e7490'];
     const SVG_BOMB = "M11 21A7 7 0 1011 7A7 7 0 0011 21ZM9 5h4v2H9V5ZM12 5c0-2 2-3 4-3v1c-1.5 0-3 .5-3 2H12ZM17 1l1.5 1.5L17 4l-1.5-1.5L17 1Z";
     const SVG_DOOR = "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16h2V5h10v16h2ZM7 5v16l8-2V7L7 5ZM13 11.5a1 1 0 110 2 1 1 0 010-2Z";
     
@@ -38,7 +42,8 @@ const CASA_AMOR = [
     let currentTab = 'original';
     let globalData = {
         original: { datasets: [], stats: [] },
-        casa_amor: { datasets: [], stats: [] }
+        casa_amor: { datasets: [], stats: [] },
+        combined: { datasets: [], stats: [] }
     };
 
     function getIconImage(path, color) {
@@ -75,29 +80,33 @@ const CASA_AMOR = [
         currentTab = tab;
         const btnOriginal = document.getElementById('tab-original');
         const btnCasa = document.getElementById('tab-casa-amor');
+        const btnCombined = document.getElementById('tab-combined');
         
-        const activeClass = "px-3 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-slate-800 transition-all";
-        const inactiveClass = "px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 transition-all";
+        const activeClass = "px-3 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-slate-800 transition-all whitespace-nowrap";
+        const inactiveClass = "px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 transition-all whitespace-nowrap";
 
-        if (tab === 'original') {
-            btnOriginal.className = activeClass;
-            btnCasa.className = inactiveClass;
-            renderChart(globalData.original.datasets);
-            renderSidebar(globalData.original.stats);
-        } else {
-            btnCasa.className = activeClass;
-            btnOriginal.className = inactiveClass;
-            renderChart(globalData.casa_amor.datasets);
-            renderSidebar(globalData.casa_amor.stats);
-        }
+        btnOriginal.className = (tab === 'original') ? activeClass : inactiveClass;
+        btnCasa.className = (tab === 'casa_amor') ? activeClass : inactiveClass;
+        btnCombined.className = (tab === 'combined') ? activeClass : inactiveClass;
+
+        renderChart(globalData[tab].datasets);
+        renderSidebar(globalData[tab].stats);
     }
 
     function processData(data) {
         const grouped = {};
+        const expelledLower = EXPELLED.map(u => u.toLowerCase());
+
+        // 1. Filter and Group valid data
         const validData = data.filter(d => {
-            if (d.followersCount === undefined || !d.timestamp) return !1;
+            if (d.followersCount === undefined || !d.timestamp) return false;
             const rawName = String(d.username).trim().toLowerCase();
-            return rawName && rawName !== 'null' && rawName !== 'undefined'
+            if (!rawName || rawName === 'null' || rawName === 'undefined') return false;
+            
+            // Ignore users in the EXPELLED array
+            if (expelledLower.includes(rawName)) return false;
+            
+            return true;
         });
 
         validData.forEach(d => {
@@ -106,6 +115,7 @@ const CASA_AMOR = [
             const coeff = 1000 * 60 * 5;
             const snappedTime = new Date(Math.round(rawDate.getTime() / coeff) * coeff);
             const timeKey = snappedTime.getTime();
+            
             if (!grouped[rawName]) {
                 grouped[rawName] = {
                     pointsMap: {},
@@ -136,16 +146,31 @@ const CASA_AMOR = [
                 })
             }
             points.sort((a, b) => a.x - b.x);
-            grouped[cleanName].points = points
+            grouped[cleanName].points = points;
         }
+
+        // 2. Generate Dynamic Color Palette across ALL valid users
+        const userColorMap = {};
+        const allUsernames = Object.keys(grouped).filter(name => grouped[name].points.length > 0);
+        
+        // Sort alphabetically to maintain consistent colors regardless of rank shifts
+        allUsernames.sort(); 
+        
+        const totalUsers = allUsernames.length;
+        allUsernames.forEach((username, idx) => {
+            // HSL spread evenly across 360 degrees
+            const hue = Math.floor((idx * 360) / totalUsers);
+            userColorMap[username] = `hsl(${hue}, 75%, 50%)`;
+        });
 
         globalData.original.datasets = [];
         globalData.original.stats = [];
         globalData.casa_amor.datasets = [];
         globalData.casa_amor.stats = [];
-        
-        let colorIndex = 0;
+        globalData.combined.datasets = [];
+        globalData.combined.stats = [];
 
+        // 3. Build Datasets and assign stats
         for (let cleanName in grouped) {
             const points = grouped[cleanName].points;
             const username = grouped[cleanName].originalUsername;
@@ -171,7 +196,7 @@ const CASA_AMOR = [
                     first: firstVal
                 };
 
-                const color = colorPalette[colorIndex % colorPalette.length];
+                const color = userColorMap[cleanName];
                 const bombIcon = getIconImage(SVG_BOMB, color);
                 const doorIcon = getIconImage(SVG_DOOR, color);
                 const pointStyles = [];
@@ -182,8 +207,8 @@ const CASA_AMOR = [
                 const bombshellKey = Object.keys(typeof BOMBSHELL_CONTESTANTS !== 'undefined' ? BOMBSHELL_CONTESTANTS : {}).find(k => k.toLowerCase() === cleanName);
                 let bombshellTime = bombshellKey ? getAdjTime(BOMBSHELL_CONTESTANTS[bombshellKey]) : null;
                 
-                let hasDumped = !1;
-                let hasBombshell = !1;
+                let hasDumped = false;
+                let hasBombshell = false;
                 let isBombshell = !!bombshellTime;
                 let legendIconStyle = 'circle';
                 
@@ -194,25 +219,25 @@ const CASA_AMOR = [
                 }
                 
                 points.forEach((pt, i) => {
-                    let pointIsBomb = !1;
-                    let pointIsDoor = !1;
+                    let pointIsBomb = false;
+                    let pointIsDoor = false;
                     if (bombshellTime && pt.x.getTime() >= bombshellTime && !hasBombshell) {
-                        pointIsBomb = !0;
-                        hasBombshell = !0
+                        pointIsBomb = true;
+                        hasBombshell = true;
                     }
                     if (dumpedTime && pt.x.getTime() >= dumpedTime && !hasDumped) {
-                        pointIsDoor = !0;
-                        hasDumped = !0
+                        pointIsDoor = true;
+                        hasDumped = true;
                     }
                     if (pointIsDoor) {
                         pointStyles.push(doorIcon);
-                        pointRadii.push(7)
+                        pointRadii.push(7);
                     } else if (pointIsBomb) {
                         pointStyles.push(bombIcon);
-                        pointRadii.push(7)
+                        pointRadii.push(7);
                     } else {
                         pointStyles.push('circle');
-                        pointRadii.push(1)
+                        pointRadii.push(1);
                     }
                 });
 
@@ -226,19 +251,19 @@ const CASA_AMOR = [
                     pointStyle: pointStyles,
                     pointRadius: pointRadii,
                     pointHoverRadius: 6,
-                    fill: !1,
-                    spanGaps: !0,
+                    fill: false,
+                    spanGaps: true,
                     legendPointStyle: legendIconStyle,
                     segment: {
                         borderDash: ctx => {
                             const p0Time = points[ctx.p0DataIndex].x.getTime();
                             if (dumpedTime && p0Time >= dumpedTime) {
-                                return [6, 4]
+                                return [6, 4];
                             }
                             if (bombshellTime && p0Time < bombshellTime) {
-                                return [6, 4]
+                                return [6, 4];
                             }
-                            return undefined
+                            return undefined;
                         }
                     }
                 };
@@ -252,33 +277,43 @@ const CASA_AMOR = [
                     globalData.original.stats.push(statObj);
                     globalData.original.datasets.push(datasetObj);
                 }
-                colorIndex++
+                
+                // Add everyone to combined
+                globalData.combined.stats.push(statObj);
+                globalData.combined.datasets.push(datasetObj);
             }
         }
 
-        // Sort ascending by current followers.
-        // Chart.js draws in array order, so placing the highest values last ensures they render on top (Z-index effect).
-        const sortByFollowersAsc = (a, b) => {
+        // 4. Sort Datasets for Legend & Z-Index
+        // Sort descending (Highest followers first). 
+        const sortDescByFollowers = (a, b) => {
             const aLast = a.data[a.data.length - 1].y;
             const bLast = b.data[b.data.length - 1].y;
-            return aLast - bLast;
+            return bLast - aLast; 
         };
 
-        globalData.original.datasets.sort(sortByFollowersAsc);
-        globalData.casa_amor.datasets.sort(sortByFollowersAsc);
+        ['original', 'casa_amor', 'combined'].forEach(tabKey => {
+            // Sort datasets descending so highest is at array index 0.
+            globalData[tabKey].datasets.sort(sortDescByFollowers);
+            
+            // Assign 'order'. Chart.js draws lower order numbers ON TOP of higher order numbers.
+            // Index 0 (highest follower) gets order: 0 (drawn on top of all).
+            globalData[tabKey].datasets.forEach((ds, index) => {
+                ds.order = index;
+            });
 
-        // Sort rankings by total follower increase (descending)
-        globalData.original.stats.sort((a, b) => b.increase - a.increase);
-        globalData.casa_amor.stats.sort((a, b) => b.increase - a.increase);
+            // Sort rankings sidebar by follower increase
+            globalData[tabKey].stats.sort((a, b) => b.increase - a.increase);
+        });
 
-        // Initial render
+        // 5. Initial render
         switchTab(currentTab);
     }
 
     function renderChart(datasets) {
         const ctx = document.getElementById('followerChart').getContext('2d');
         if (chartInstance) {
-            chartInstance.destroy()
+            chartInstance.destroy();
         }
         chartInstance = new Chart(ctx, {
             type: 'line',
@@ -286,18 +321,18 @@ const CASA_AMOR = [
                 datasets
             },
             options: {
-                responsive: !0,
-                maintainAspectRatio: !1,
+                responsive: true,
+                maintainAspectRatio: false,
                 interaction: {
                     mode: 'nearest',
                     axis: 'x',
-                    intersect: !1,
+                    intersect: false,
                 },
                 plugins: {
                     legend: {
                         position: 'bottom',
                         labels: {
-                            usePointStyle: !0,
+                            usePointStyle: true,
                             boxWidth: 16,
                             padding: 20,
                             font: {
@@ -305,7 +340,9 @@ const CASA_AMOR = [
                                 size: 12
                             },
                             generateLabels: function(chart) {
-                                const labels = chart.data.datasets.map((dataset, i) => ({
+                                // Since we natively sorted the datasets array descending, 
+                                // the legend will naturally display the highest follower count first.
+                                return chart.data.datasets.map((dataset, i) => ({
                                     text: dataset.label,
                                     fillStyle: dataset.backgroundColor,
                                     strokeStyle: dataset.borderColor,
@@ -314,8 +351,6 @@ const CASA_AMOR = [
                                     hidden: !chart.isDatasetVisible(i),
                                     datasetIndex: i
                                 }));
-                                // Reverse so the most followed (at the end of the array) shows up first in the legend
-                                return labels.reverse();
                             }
                         }
                     },
@@ -338,12 +373,12 @@ const CASA_AMOR = [
                             label: function(context) {
                                 let label = context.dataset.label || '';
                                 if (label) {
-                                    label += ': '
+                                    label += ': ';
                                 }
                                 if (context.parsed.y !== null) {
-                                    label += new Intl.NumberFormat('en-US').format(context.parsed.y)
+                                    label += new Intl.NumberFormat('en-US').format(context.parsed.y);
                                 }
-                                return label
+                                return label;
                             }
                         }
                     }
@@ -359,7 +394,7 @@ const CASA_AMOR = [
                             }
                         },
                         grid: {
-                            display: !1
+                            display: false
                         },
                         ticks: {
                             font: {
@@ -373,7 +408,7 @@ const CASA_AMOR = [
                     y: {
                         grid: {
                             color: '#f1f5f9',
-                            drawBorder: !1,
+                            drawBorder: false,
                         },
                         ticks: {
                             font: {
@@ -383,13 +418,13 @@ const CASA_AMOR = [
                             callback: function(value) {
                                 if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
                                 if (value >= 1000) return (value / 1000).toFixed(1) + 'k';
-                                return value
+                                return value;
                             }
                         }
                     }
                 }
             }
-        })
+        });
     }
 
     function renderSidebar(stats) {
@@ -397,7 +432,7 @@ const CASA_AMOR = [
         container.innerHTML = '';
         if (stats.length === 0) {
             container.innerHTML = `<div class="text-sm text-slate-500 text-center py-8">No valid data found.</div>`;
-            return
+            return;
         }
         stats.forEach((stat, index) => {
             const increaseFormatted = new Intl.NumberFormat('en-US').format(stat.increase);
@@ -428,13 +463,14 @@ const CASA_AMOR = [
                     </div>
                 </div>
             `;
-            container.insertAdjacentHTML('beforeend', cardHtml)
-        })
+            container.insertAdjacentHTML('beforeend', cardHtml);
+        });
     }
     
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('tab-original').addEventListener('click', () => switchTab('original'));
         document.getElementById('tab-casa-amor').addEventListener('click', () => switchTab('casa_amor'));
+        document.getElementById('tab-combined').addEventListener('click', () => switchTab('combined'));
         init();
     });
 })();
