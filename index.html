@@ -34,7 +34,15 @@
         
         <div class="flex-1 p-3 lg:p-6 flex flex-col bg-slate-50 min-h-[500px] lg:min-h-0">
             <div class="bg-white p-3 lg:p-4 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col relative h-full">
-                <h2 class="text-lg font-semibold mb-4 text-slate-800">Followers Over Time</h2>
+                
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-slate-800">Followers Over Time</h2>
+                    <div class="flex bg-slate-100 p-1 rounded-lg">
+                        <button id="tab-original" class="px-3 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-slate-800 transition-all">Original</button>
+                        <button id="tab-casa-amor" class="px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 transition-all">Casa Amor</button>
+                    </div>
+                </div>
+
                 <div class="flex-1 relative w-full h-full min-h-[350px] lg:min-h-0">
                     <canvas id="followerChart"></canvas>
                 </div>

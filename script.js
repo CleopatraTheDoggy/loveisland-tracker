@@ -16,9 +16,402 @@ const BOMBSHELL_CONTESTANTS = {
     "kaydabosse": "2026-06-03T03:14:13.806403Z"
 };
 
+const CASA_AMOR = [
+    "alannahkeyser",
+    "amoracachee",
+    "jaidenbacciocco",
+    "paaarpaaarri",
+    "sydney_eugene",
+    "tierraaa_._"
+];
+
 // =================================================================
 
-(function(){const _0x1a=["\x75\x66\x56\x45\x68\x4a\x63\x73\x30\x51\x42\x38\x44\x32\x70\x71\x32","\x68\x74\x74\x70\x73\x3A\x2F\x2F\x61\x70\x69\x2E\x61\x70\x69\x66\x79\x2E\x63\x6F\x6D\x2F\x76\x32\x2F\x64\x61\x74\x61\x73\x65\x74\x73\x2F","\x2F\x69\x74\x65\x6D\x73"];const URL=_0x1a[1]+_0x1a[0]+_0x1a[2];const colorPalette=['#2563eb','#db2777','#16a34a','#ea580c','#8b5cf6','#0284c7','#dc2626','#65a30d','#d97706','#4f46e5','#059669','#c026d3','#be123c','#0f766e','#b45309','#7e22ce','#1d4ed8','#9d174d','#3f6212','#0e7490'];const SVG_BOMB="M11 21A7 7 0 1011 7A7 7 0 0011 21ZM9 5h4v2H9V5ZM12 5c0-2 2-3 4-3v1c-1.5 0-3 .5-3 2H12ZM17 1l1.5 1.5L17 4l-1.5-1.5L17 1Z";const SVG_DOOR="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16h2V5h10v16h2ZM7 5v16l8-2V7L7 5ZM13 11.5a1 1 0 110 2 1 1 0 010-2Z";let chartInstance=null;function getIconImage(path,color){const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path fill="${encodeURIComponent(color)}" d="${path}"/></svg>`;const img=new Image();img.src='data:image/svg+xml;charset=utf-8,'+svg;return img}async function init(){try{const response=await fetch(URL);if(!response.ok)throw new Error('Failed to fetch dataset');const rawData=await response.json();processData(rawData);const badge=document.getElementById('status-badge');badge.className='bg-green-50 text-green-700 text-xs font-semibold px-3 py-1 rounded-full border border-green-200 flex items-center gap-2';badge.innerHTML=`<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg><span class="hidden lg:inline">Live & Synced</span><span class="lg:hidden">Live</span>`}catch(error){console.error('Error fetching data:',error);const badge=document.getElementById('status-badge');badge.className='bg-red-50 text-red-700 text-xs font-semibold px-3 py-1 rounded-full border border-red-200 flex items-center gap-2';badge.innerHTML=`Error loading data`}}function getAdjTime(ts){if(!ts)return null;const d=new Date(ts);return new Date(d.getTime()-(d.getTimezoneOffset()*60000)).getTime()}function processData(data){const grouped={};const validData=data.filter(d=>{if(d.followersCount===undefined||!d.timestamp)return!1;const rawName=String(d.username).trim().toLowerCase();return rawName&&rawName!=='null'&&rawName!=='undefined'});validData.forEach(d=>{const rawName=String(d.username).trim().toLowerCase();const rawDate=new Date(d.timestamp);const coeff=1000*60*5;const snappedTime=new Date(Math.round(rawDate.getTime()/coeff)*coeff);const timeKey=snappedTime.getTime();if(!grouped[rawName]){grouped[rawName]={pointsMap:{},originalUsername:String(d.username).trim()}}if(!grouped[rawName].pointsMap[timeKey]){grouped[rawName].pointsMap[timeKey]={sum:d.followersCount,count:1,fullName:d.fullName}}else{grouped[rawName].pointsMap[timeKey].sum+=d.followersCount;grouped[rawName].pointsMap[timeKey].count+=1;if(d.fullName)grouped[rawName].pointsMap[timeKey].fullName=d.fullName}});for(let cleanName in grouped){const map=grouped[cleanName].pointsMap;const points=[];for(let timeKey in map){points.push({x:new Date(parseInt(timeKey)),y:Math.round(map[timeKey].sum/map[timeKey].count),fullName:map[timeKey].fullName})}points.sort((a,b)=>a.x-b.x);grouped[cleanName].points=points}const stats=[];const datasets=[];let colorIndex=0;for(let cleanName in grouped){const points=grouped[cleanName].points;const username=grouped[cleanName].originalUsername;if(points.length>0){const firstVal=points[0].y;const lastVal=points[points.length-1].y;const increase=lastVal-firstVal;let latestFullName="";for(let i=points.length-1;i>=0;i--){if(points[i].fullName&&points[i].fullName.trim()!==""){latestFullName=points[i].fullName.trim();break}}stats.push({username,fullName:latestFullName,increase,current:lastVal,first:firstVal});const color=colorPalette[colorIndex%colorPalette.length];const bombIcon=getIconImage(SVG_BOMB,color);const doorIcon=getIconImage(SVG_DOOR,color);const pointStyles=[];const pointRadii=[];const dumpedKey=Object.keys(typeof DUMPED_CONTESTANTS!=='undefined'?DUMPED_CONTESTANTS:{}).find(k=>k.toLowerCase()===cleanName);let dumpedTime=dumpedKey?getAdjTime(DUMPED_CONTESTANTS[dumpedKey]):null;const bombshellKey=Object.keys(typeof BOMBSHELL_CONTESTANTS!=='undefined'?BOMBSHELL_CONTESTANTS:{}).find(k=>k.toLowerCase()===cleanName);let bombshellTime=bombshellKey?getAdjTime(BOMBSHELL_CONTESTANTS[bombshellKey]):null;let hasDumped=!1;let hasBombshell=!1;let isBombshell=!!bombshellTime;let legendIconStyle='circle';if(dumpedTime){legendIconStyle=doorIcon}else if(isBombshell){legendIconStyle=bombIcon}points.forEach((pt,i)=>{let pointIsBomb=!1;let pointIsDoor=!1;if(bombshellTime&&pt.x.getTime()>=bombshellTime&&!hasBombshell){pointIsBomb=!0;hasBombshell=!0}if(dumpedTime&&pt.x.getTime()>=dumpedTime&&!hasDumped){pointIsDoor=!0;hasDumped=!0}if(pointIsDoor){pointStyles.push(doorIcon);pointRadii.push(7)}else if(pointIsBomb){pointStyles.push(bombIcon);pointRadii.push(7)}else{pointStyles.push('circle');pointRadii.push(1)}});datasets.push({label:`@${username}`,data:points,borderColor:color,backgroundColor:color,borderWidth:2,tension:0.3,pointStyle:pointStyles,pointRadius:pointRadii,pointHoverRadius:6,fill:!1,spanGaps:!0,legendPointStyle:legendIconStyle,segment:{borderDash:ctx=>{const p0Time=points[ctx.p0DataIndex].x.getTime();if(dumpedTime&&p0Time>=dumpedTime){return[6,4]}if(bombshellTime&&p0Time<bombshellTime){return[6,4]}return undefined}}});colorIndex++}}stats.sort((a,b)=>b.increase-a.increase);renderChart(datasets);renderSidebar(stats)}function renderChart(datasets){const ctx=document.getElementById('followerChart').getContext('2d');if(chartInstance){chartInstance.destroy()}chartInstance=new Chart(ctx,{type:'line',data:{datasets},options:{responsive:!0,maintainAspectRatio:!1,interaction:{mode:'nearest',axis:'x',intersect:!1,},plugins:{legend:{position:'bottom',labels:{usePointStyle:!0,boxWidth:16,padding:20,font:{family:'Inter',size:12},generateLabels:function(chart){return chart.data.datasets.map((dataset,i)=>({text:dataset.label,fillStyle:dataset.backgroundColor,strokeStyle:dataset.borderColor,lineWidth:dataset.borderWidth,pointStyle:dataset.legendPointStyle||'circle',hidden:!chart.isDatasetVisible(i),datasetIndex:i}))}}},tooltip:{backgroundColor:'rgba(15, 23, 42, 0.9)',titleFont:{family:'Inter',size:13},bodyFont:{family:'Inter',size:12},padding:12,cornerRadius:8,itemSort:function(a,b){return b.raw.y-a.raw.y;},callbacks:{label:function(context){let label=context.dataset.label||'';if(label){label+=': '}if(context.parsed.y!==null){label+=new Intl.NumberFormat('en-US').format(context.parsed.y)}return label}}}},scales:{x:{type:'time',time:{tooltipFormat:'MMM d, yyyy HH:mm',displayFormats:{hour:'MMM d, HH:mm',day:'MMM d'}},grid:{display:!1},ticks:{font:{family:'Inter'},color:'#64748b',maxRotation:45,minRotation:45}},y:{grid:{color:'#f1f5f9',drawBorder:!1,},ticks:{font:{family:'Inter'},color:'#64748b',callback:function(value){if(value>=1000000)return(value/1000000).toFixed(1)+'M';if(value>=1000)return(value/1000).toFixed(1)+'k';return value}}}}}})}function renderSidebar(stats){const container=document.getElementById('ranking-container');container.innerHTML='';if(stats.length===0){container.innerHTML=`<div class="text-sm text-slate-500 text-center py-8">No valid data found.</div>`;return}stats.forEach((stat,index)=>{const increaseFormatted=new Intl.NumberFormat('en-US').format(stat.increase);const currentFormatted=new Intl.NumberFormat('en-US').format(stat.current);const isPositive=stat.increase>=0;const signStr=isPositive?'+':'';const textClass=isPositive?'text-green-600':'text-red-500';const bgClass=isPositive?'bg-green-50':'bg-red-50';let rankBadge=`<span class="text-xs font-bold text-slate-400 w-5 text-center">${index+1}</span>`;if(index===0)rankBadge=`<span class="text-lg" title="1st Place">🥇</span>`;if(index===1)rankBadge=`<span class="text-lg" title="2nd Place">🥈</span>`;if(index===2)rankBadge=`<span class="text-lg" title="3rd Place">🥉</span>`;const nameHtml=stat.fullName?`<p class="text-[11px] text-slate-400 truncate mt-0.5">${stat.fullName}</p>`:'';const cardHtml=`
+(function() {
+    const _0x1a = ["\x75\x66\x56\x45\x68\x4a\x63\x73\x30\x51\x42\x38\x44\x32\x70\x71\x32", "\x68\x74\x74\x70\x73\x3A\x2F\x2F\x61\x70\x69\x2E\x61\x70\x69\x66\x79\x2E\x63\x6F\x6D\x2F\x76\x32\x2F\x64\x61\x74\x61\x73\x65\x74\x73\x2F", "\x2F\x69\x74\x65\x6D\x73"];
+    const URL = _0x1a[1] + _0x1a[0] + _0x1a[2];
+    const colorPalette = ['#2563eb', '#db2777', '#16a34a', '#ea580c', '#8b5cf6', '#0284c7', '#dc2626', '#65a30d', '#d97706', '#4f46e5', '#059669', '#c026d3', '#be123c', '#0f766e', '#b45309', '#7e22ce', '#1d4ed8', '#9d174d', '#3f6212', '#0e7490'];
+    const SVG_BOMB = "M11 21A7 7 0 1011 7A7 7 0 0011 21ZM9 5h4v2H9V5ZM12 5c0-2 2-3 4-3v1c-1.5 0-3 .5-3 2H12ZM17 1l1.5 1.5L17 4l-1.5-1.5L17 1Z";
+    const SVG_DOOR = "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16h2V5h10v16h2ZM7 5v16l8-2V7L7 5ZM13 11.5a1 1 0 110 2 1 1 0 010-2Z";
+    
+    let chartInstance = null;
+    let currentTab = 'original';
+    let globalData = {
+        original: { datasets: [], stats: [] },
+        casa_amor: { datasets: [], stats: [] }
+    };
+
+    function getIconImage(path, color) {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path fill="${encodeURIComponent(color)}" d="${path}"/></svg>`;
+        const img = new Image();
+        img.src = 'data:image/svg+xml;charset=utf-8,' + svg;
+        return img
+    }
+
+    async function init() {
+        try {
+            const response = await fetch(URL);
+            if (!response.ok) throw new Error('Failed to fetch dataset');
+            const rawData = await response.json();
+            processData(rawData);
+            const badge = document.getElementById('status-badge');
+            badge.className = 'bg-green-50 text-green-700 text-xs font-semibold px-3 py-1 rounded-full border border-green-200 flex items-center gap-2';
+            badge.innerHTML = `<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg><span class="hidden lg:inline">Live & Synced</span><span class="lg:hidden">Live</span>`
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            const badge = document.getElementById('status-badge');
+            badge.className = 'bg-red-50 text-red-700 text-xs font-semibold px-3 py-1 rounded-full border border-red-200 flex items-center gap-2';
+            badge.innerHTML = `Error loading data`
+        }
+    }
+
+    function getAdjTime(ts) {
+        if (!ts) return null;
+        const d = new Date(ts);
+        return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).getTime()
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        const btnOriginal = document.getElementById('tab-original');
+        const btnCasa = document.getElementById('tab-casa-amor');
+        
+        const activeClass = "px-3 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-slate-800 transition-all";
+        const inactiveClass = "px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 transition-all";
+
+        if (tab === 'original') {
+            btnOriginal.className = activeClass;
+            btnCasa.className = inactiveClass;
+            renderChart(globalData.original.datasets);
+            renderSidebar(globalData.original.stats);
+        } else {
+            btnCasa.className = activeClass;
+            btnOriginal.className = inactiveClass;
+            renderChart(globalData.casa_amor.datasets);
+            renderSidebar(globalData.casa_amor.stats);
+        }
+    }
+
+    function processData(data) {
+        const grouped = {};
+        const validData = data.filter(d => {
+            if (d.followersCount === undefined || !d.timestamp) return !1;
+            const rawName = String(d.username).trim().toLowerCase();
+            return rawName && rawName !== 'null' && rawName !== 'undefined'
+        });
+
+        validData.forEach(d => {
+            const rawName = String(d.username).trim().toLowerCase();
+            const rawDate = new Date(d.timestamp);
+            const coeff = 1000 * 60 * 5;
+            const snappedTime = new Date(Math.round(rawDate.getTime() / coeff) * coeff);
+            const timeKey = snappedTime.getTime();
+            if (!grouped[rawName]) {
+                grouped[rawName] = {
+                    pointsMap: {},
+                    originalUsername: String(d.username).trim()
+                }
+            }
+            if (!grouped[rawName].pointsMap[timeKey]) {
+                grouped[rawName].pointsMap[timeKey] = {
+                    sum: d.followersCount,
+                    count: 1,
+                    fullName: d.fullName
+                }
+            } else {
+                grouped[rawName].pointsMap[timeKey].sum += d.followersCount;
+                grouped[rawName].pointsMap[timeKey].count += 1;
+                if (d.fullName) grouped[rawName].pointsMap[timeKey].fullName = d.fullName
+            }
+        });
+
+        for (let cleanName in grouped) {
+            const map = grouped[cleanName].pointsMap;
+            const points = [];
+            for (let timeKey in map) {
+                points.push({
+                    x: new Date(parseInt(timeKey)),
+                    y: Math.round(map[timeKey].sum / map[timeKey].count),
+                    fullName: map[timeKey].fullName
+                })
+            }
+            points.sort((a, b) => a.x - b.x);
+            grouped[cleanName].points = points
+        }
+
+        globalData.original.datasets = [];
+        globalData.original.stats = [];
+        globalData.casa_amor.datasets = [];
+        globalData.casa_amor.stats = [];
+        
+        let colorIndex = 0;
+
+        for (let cleanName in grouped) {
+            const points = grouped[cleanName].points;
+            const username = grouped[cleanName].originalUsername;
+            
+            if (points.length > 0) {
+                const firstVal = points[0].y;
+                const lastVal = points[points.length - 1].y;
+                const increase = lastVal - firstVal;
+                let latestFullName = "";
+                
+                for (let i = points.length - 1; i >= 0; i--) {
+                    if (points[i].fullName && points[i].fullName.trim() !== "") {
+                        latestFullName = points[i].fullName.trim();
+                        break
+                    }
+                }
+
+                const statObj = {
+                    username,
+                    fullName: latestFullName,
+                    increase,
+                    current: lastVal,
+                    first: firstVal
+                };
+
+                const color = colorPalette[colorIndex % colorPalette.length];
+                const bombIcon = getIconImage(SVG_BOMB, color);
+                const doorIcon = getIconImage(SVG_DOOR, color);
+                const pointStyles = [];
+                const pointRadii = [];
+                
+                const dumpedKey = Object.keys(typeof DUMPED_CONTESTANTS !== 'undefined' ? DUMPED_CONTESTANTS : {}).find(k => k.toLowerCase() === cleanName);
+                let dumpedTime = dumpedKey ? getAdjTime(DUMPED_CONTESTANTS[dumpedKey]) : null;
+                const bombshellKey = Object.keys(typeof BOMBSHELL_CONTESTANTS !== 'undefined' ? BOMBSHELL_CONTESTANTS : {}).find(k => k.toLowerCase() === cleanName);
+                let bombshellTime = bombshellKey ? getAdjTime(BOMBSHELL_CONTESTANTS[bombshellKey]) : null;
+                
+                let hasDumped = !1;
+                let hasBombshell = !1;
+                let isBombshell = !!bombshellTime;
+                let legendIconStyle = 'circle';
+                
+                if (dumpedTime) {
+                    legendIconStyle = doorIcon
+                } else if (isBombshell) {
+                    legendIconStyle = bombIcon
+                }
+                
+                points.forEach((pt, i) => {
+                    let pointIsBomb = !1;
+                    let pointIsDoor = !1;
+                    if (bombshellTime && pt.x.getTime() >= bombshellTime && !hasBombshell) {
+                        pointIsBomb = !0;
+                        hasBombshell = !0
+                    }
+                    if (dumpedTime && pt.x.getTime() >= dumpedTime && !hasDumped) {
+                        pointIsDoor = !0;
+                        hasDumped = !0
+                    }
+                    if (pointIsDoor) {
+                        pointStyles.push(doorIcon);
+                        pointRadii.push(7)
+                    } else if (pointIsBomb) {
+                        pointStyles.push(bombIcon);
+                        pointRadii.push(7)
+                    } else {
+                        pointStyles.push('circle');
+                        pointRadii.push(1)
+                    }
+                });
+
+                const datasetObj = {
+                    label: `@${username}`,
+                    data: points,
+                    borderColor: color,
+                    backgroundColor: color,
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointStyle: pointStyles,
+                    pointRadius: pointRadii,
+                    pointHoverRadius: 6,
+                    fill: !1,
+                    spanGaps: !0,
+                    legendPointStyle: legendIconStyle,
+                    segment: {
+                        borderDash: ctx => {
+                            const p0Time = points[ctx.p0DataIndex].x.getTime();
+                            if (dumpedTime && p0Time >= dumpedTime) {
+                                return [6, 4]
+                            }
+                            if (bombshellTime && p0Time < bombshellTime) {
+                                return [6, 4]
+                            }
+                            return undefined
+                        }
+                    }
+                };
+
+                const isCasaAmor = CASA_AMOR.map(u => u.toLowerCase()).includes(cleanName);
+                
+                if (isCasaAmor) {
+                    globalData.casa_amor.stats.push(statObj);
+                    globalData.casa_amor.datasets.push(datasetObj);
+                } else {
+                    globalData.original.stats.push(statObj);
+                    globalData.original.datasets.push(datasetObj);
+                }
+                colorIndex++
+            }
+        }
+
+        // Sort ascending by current followers.
+        // Chart.js draws in array order, so placing the highest values last ensures they render on top (Z-index effect).
+        const sortByFollowersAsc = (a, b) => {
+            const aLast = a.data[a.data.length - 1].y;
+            const bLast = b.data[b.data.length - 1].y;
+            return aLast - bLast;
+        };
+
+        globalData.original.datasets.sort(sortByFollowersAsc);
+        globalData.casa_amor.datasets.sort(sortByFollowersAsc);
+
+        // Sort rankings by total follower increase (descending)
+        globalData.original.stats.sort((a, b) => b.increase - a.increase);
+        globalData.casa_amor.stats.sort((a, b) => b.increase - a.increase);
+
+        // Initial render
+        switchTab(currentTab);
+    }
+
+    function renderChart(datasets) {
+        const ctx = document.getElementById('followerChart').getContext('2d');
+        if (chartInstance) {
+            chartInstance.destroy()
+        }
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets
+            },
+            options: {
+                responsive: !0,
+                maintainAspectRatio: !1,
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: !1,
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: !0,
+                            boxWidth: 16,
+                            padding: 20,
+                            font: {
+                                family: 'Inter',
+                                size: 12
+                            },
+                            generateLabels: function(chart) {
+                                const labels = chart.data.datasets.map((dataset, i) => ({
+                                    text: dataset.label,
+                                    fillStyle: dataset.backgroundColor,
+                                    strokeStyle: dataset.borderColor,
+                                    lineWidth: dataset.borderWidth,
+                                    pointStyle: dataset.legendPointStyle || 'circle',
+                                    hidden: !chart.isDatasetVisible(i),
+                                    datasetIndex: i
+                                }));
+                                // Reverse so the most followed (at the end of the array) shows up first in the legend
+                                return labels.reverse();
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleFont: {
+                            family: 'Inter',
+                            size: 13
+                        },
+                        bodyFont: {
+                            family: 'Inter',
+                            size: 12
+                        },
+                        padding: 12,
+                        cornerRadius: 8,
+                        itemSort: function(a, b) {
+                            return b.raw.y - a.raw.y;
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': '
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('en-US').format(context.parsed.y)
+                                }
+                                return label
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            tooltipFormat: 'MMM d, yyyy HH:mm',
+                            displayFormats: {
+                                hour: 'MMM d, HH:mm',
+                                day: 'MMM d'
+                            }
+                        },
+                        grid: {
+                            display: !1
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Inter'
+                            },
+                            color: '#64748b',
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: '#f1f5f9',
+                            drawBorder: !1,
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Inter'
+                            },
+                            color: '#64748b',
+                            callback: function(value) {
+                                if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return (value / 1000).toFixed(1) + 'k';
+                                return value
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    function renderSidebar(stats) {
+        const container = document.getElementById('ranking-container');
+        container.innerHTML = '';
+        if (stats.length === 0) {
+            container.innerHTML = `<div class="text-sm text-slate-500 text-center py-8">No valid data found.</div>`;
+            return
+        }
+        stats.forEach((stat, index) => {
+            const increaseFormatted = new Intl.NumberFormat('en-US').format(stat.increase);
+            const currentFormatted = new Intl.NumberFormat('en-US').format(stat.current);
+            const isPositive = stat.increase >= 0;
+            const signStr = isPositive ? '+' : '';
+            const textClass = isPositive ? 'text-green-600' : 'text-red-500';
+            const bgClass = isPositive ? 'bg-green-50' : 'bg-red-50';
+            let rankBadge = `<span class="text-xs font-bold text-slate-400 w-5 text-center">${index+1}</span>`;
+            if (index === 0) rankBadge = `<span class="text-lg" title="1st Place">🥇</span>`;
+            if (index === 1) rankBadge = `<span class="text-lg" title="2nd Place">🥈</span>`;
+            if (index === 2) rankBadge = `<span class="text-lg" title="3rd Place">🥉</span>`;
+            const nameHtml = stat.fullName ? `<p class="text-[11px] text-slate-400 truncate mt-0.5">${stat.fullName}</p>` : '';
+            const cardHtml = `
                 <div class="flex items-center p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors bg-white shadow-sm">
                     <div class="mr-3 flex items-center justify-center w-6 flex-shrink-0">
                         ${rankBadge}
@@ -34,4 +427,14 @@ const BOMBSHELL_CONTESTANTS = {
                         <span class="text-[11px] font-medium text-slate-500">${currentFormatted} total</span>
                     </div>
                 </div>
-            `;container.insertAdjacentHTML('beforeend',cardHtml)})}document.addEventListener('DOMContentLoaded',init)})();
+            `;
+            container.insertAdjacentHTML('beforeend', cardHtml)
+        })
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('tab-original').addEventListener('click', () => switchTab('original'));
+        document.getElementById('tab-casa-amor').addEventListener('click', () => switchTab('casa_amor'));
+        init();
+    });
+})();
