@@ -23,39 +23,119 @@
     <script defer src="https://cloud.umami.is/script.js" data-website-id="d4044f68-b37e-4710-9c74-4a7936a3719c"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="text-slate-800 flex flex-col bg-slate-50 min-h-screen lg:h-screen lg:overflow-hidden">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col min-h-screen lg:h-screen lg:overflow-hidden transition-colors duration-200">
 
-    <header class="bg-white border-b border-slate-200 px-4 lg:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
-            <h1 class="text-xl lg:text-2xl font-bold text-slate-900">Follower Growth Dashboard</h1>
-            <p class="text-xs lg:text-sm text-slate-500">Live Data of LoveIsland Contestants USA S8</p>
+    <div class="sticky top-0 z-30 w-full bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex justify-center items-center py-1 lg:fixed lg:top-0 lg:left-1/2 lg:-translate-x-1/2 lg:w-[350px] lg:h-[76px] lg:border-none lg:bg-transparent pointer-events-none transition-colors duration-200">
+        <div class="scene" role="img" aria-label="Island.Guru animated title">
+            <div class="title-wrap">
+                <div class="site-title">Island.Guru</div>
+                <div class="heart-container">
+                    <div class="heart-pulse">
+                        <svg viewBox="0 0 90 84" style="width: 42px; height: auto;" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <radialGradient id="hg2" cx="50%" cy="42%" r="60%">
+                                    <stop offset="0%" stop-color="#FFE066"/>
+                                    <stop offset="35%" stop-color="#FFB700"/>
+                                    <stop offset="65%" stop-color="#E08A00"/>
+                                    <stop offset="100%" stop-color="#C46A00"/>
+                                </radialGradient>
+                                <radialGradient id="hgShine2" cx="35%" cy="28%" r="50%">
+                                    <stop offset="0%" stop-color="#FFF6CC" stop-opacity="0.95"/>
+                                    <stop offset="100%" stop-color="#FFD000" stop-opacity="0"/>
+                                </radialGradient>
+                            </defs>
+                            <path d="M45 74 C45 74 6 50 6 27 C6 15 15 6 27 6 C35 6 42 10 45 17 C48 10 55 6 63 6 C75 6 84 15 84 27 C84 50 45 74 45 74Z" fill="url(#hg2)"/>
+                            <path d="M45 74 C45 74 6 50 6 27 C6 15 15 6 27 6 C35 6 42 10 45 17 C48 10 55 6 63 6 C75 6 84 15 84 27 C84 50 45 74 45 74Z" fill="url(#hgShine2)"/>
+                            <g class="shimmer-overlay">
+                                <ellipse cx="22" cy="22" rx="2.5" ry="2.5" fill="#FFF8CC" opacity="0.9"/>
+                                <ellipse cx="35" cy="14" rx="2" ry="2" fill="#FFE566" opacity="0.85"/>
+                                <ellipse cx="55" cy="16" rx="2.5" ry="2.5" fill="#FFFFFF" opacity="0.95"/>
+                                <ellipse cx="68" cy="24" rx="2" ry="2" fill="#FFE566" opacity="0.8"/>
+                                <ellipse cx="62" cy="42" rx="1.5" ry="1.5" fill="#FFF8CC" opacity="0.9"/>
+                                <ellipse cx="30" cy="48" rx="2" ry="2" fill="#FFE566" opacity="0.85"/>
+                                <ellipse cx="45" cy="38" rx="1.8" ry="1.8" fill="#FFFFFF" opacity="0.9"/>
+                                <ellipse cx="50" cy="60" rx="1.5" ry="1.5" fill="#FFD700" opacity="0.8"/>
+                                <ellipse cx="20" cy="38" rx="1.5" ry="1.5" fill="#FFF8CC" opacity="0.75"/>
+                                <ellipse cx="72" cy="36" rx="1.5" ry="1.5" fill="#FFE000" opacity="0.8"/>
+                                <ellipse cx="40" cy="26" rx="1.2" ry="1.2" fill="#FFFFFF" opacity="0.7"/>
+                                <ellipse cx="60" cy="28" rx="1.2" ry="1.2" fill="#FFFACC" opacity="0.75"/>
+                            </g>
+                            <g class="sparkle" style="--dur:1.4s;--delay:0.1s">
+                                <line x1="10" y1="10" x2="10" y2="4" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round"/>
+                                <line x1="7" y1="13" x2="2" y2="13" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round"/>
+                            </g>
+                            <g class="sparkle" style="--dur:1.2s;--delay:0.4s">
+                                <line x1="78" y1="8" x2="78" y2="2" stroke="#FFE566" stroke-width="1.5" stroke-linecap="round"/>
+                                <line x1="75" y1="11" x2="70" y2="11" stroke="#FFE566" stroke-width="1.5" stroke-linecap="round"/>
+                            </g>
+                            <g class="sparkle" style="--dur:1.5s;--delay:0.0s">
+                                <line x1="82" y1="50" x2="82" y2="44" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round"/>
+                                <line x1="79" y1="53" x2="74" y2="53" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round"/>
+                            </g>
+                            <g class="sparkle" style="--dur:1.3s;--delay:0.2s">
+                                <line x1="8" y1="56" x2="8" y2="50" stroke="#FFE566" stroke-width="1.3" stroke-linecap="round"/>
+                                <line x1="5" y1="59" x2="0" y2="59" stroke="#FFE566" stroke-width="1.3" stroke-linecap="round"/>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="status-badge" class="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full border border-blue-200 flex items-center gap-2">
-            <svg class="animate-spin h-3 w-3 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span class="hidden lg:inline">Fetching Data...</span>
-            <span class="lg:hidden">Loading...</span>
+    </div>
+
+    <header class="relative z-20 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 lg:px-6 py-3 lg:h-[76px] lg:sticky lg:top-0 flex justify-between items-center transition-colors duration-200">
+        
+        <div class="flex flex-col justify-center">
+            <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white">Follower Growth Dashboard</h1>
+            <p class="text-[11px] sm:text-xs lg:text-sm text-slate-500 dark:text-slate-400">Live Data of LoveIsland Contestants USA S8</p>
+        </div>
+        
+        <div class="flex flex-col lg:flex-row items-end lg:items-center gap-2 lg:gap-5 flex-shrink-0">
+            
+            <div id="status-badge" class="order-1 lg:order-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 dark:border-blue-800 flex items-center gap-2 transition-colors duration-200">
+                <svg class="animate-spin h-3 w-3 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="inline">Fetching...</span>
+            </div>
+
+            <div class="order-2 lg:order-1 flex items-center transform scale-[0.85] origin-right lg:scale-100 pointer-events-auto">
+                <input type="checkbox" id="theme-toggle-checkbox" class="sr-only" />
+                <label for="theme-toggle-checkbox" class="neo-toggle relative flex items-center cursor-pointer w-28 h-10 rounded-full transition-colors duration-300 overflow-hidden">
+                    <span class="absolute right-3 text-[10px] font-bold text-slate-400 tracking-wide transition-opacity duration-300 leading-tight text-center z-0" id="text-light">LIGHT<br>MODE</span>
+                    <span class="absolute left-3 text-[10px] font-bold text-slate-400 tracking-wide transition-opacity duration-300 opacity-0 leading-tight text-center z-0" id="text-dark">DARK<br>MODE</span>
+                    <div id="theme-thumb" class="neo-thumb absolute left-1 w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-300 z-10">
+                        <svg id="icon-sun" class="w-5 h-5 text-slate-400 transition-opacity duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <svg id="icon-moon" class="w-4 h-4 text-slate-200 absolute transition-opacity duration-300 opacity-0" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    </div>
+                </label>
+            </div>
+
         </div>
     </header>
 
-    <main class="flex-1 flex flex-col lg:flex-row w-full lg:overflow-hidden">
+    <main class="flex-1 flex flex-col lg:flex-row w-full lg:overflow-hidden relative z-10">
         
-        <div class="flex-1 p-3 lg:p-6 flex flex-col bg-slate-50 min-h-[500px] lg:min-h-0">
-            <div class="bg-white p-3 lg:p-4 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col relative h-full">
+        <div class="flex-1 p-3 lg:p-6 flex flex-col min-h-[500px] lg:min-h-0">
+            <div class="bg-white dark:bg-slate-800 p-3 lg:p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col relative h-full transition-colors duration-200">
                 
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
-                    <h2 class="text-lg font-semibold text-slate-800">Followers Over Time</h2>
-                    <div class="flex bg-slate-100 p-1 rounded-lg self-start sm:self-auto overflow-x-auto">
-                        <button id="tab-original" class="px-3 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-slate-800 transition-all whitespace-nowrap">Original</button>
-                        <button id="tab-casa-amor" class="px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 transition-all whitespace-nowrap">Casa Amor</button>
-                        <button id="tab-combined" class="px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 transition-all whitespace-nowrap">Combined</button>
+                    <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Followers Over Time</h2>
+                    <div class="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-lg self-start sm:self-auto overflow-x-auto border border-transparent dark:border-slate-700 transition-colors duration-200">
+                        <button id="tab-original" class="px-3 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap">Original</button>
+                        <button id="tab-casa-amor" class="px-3 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap">Casa Amor</button>
+                        <button id="tab-combined" class="px-3 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap">Combined</button>
                     </div>
                 </div>
 
@@ -65,18 +145,18 @@
             </div>
         </div>
 
-        <div class="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-slate-200 flex flex-col flex-shrink-0 lg:h-full lg:overflow-hidden">
-            <div class="p-4 lg:p-6 border-b border-slate-100">
-                <h2 class="text-lg font-semibold text-slate-800">Growth Ranking</h2>
-                <p class="text-sm text-slate-500">Total increase since tracking began</p>
+        <div class="w-full lg:w-96 bg-white dark:bg-slate-800 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-700 flex flex-col flex-shrink-0 lg:h-full lg:overflow-hidden transition-colors duration-200">
+            <div class="p-4 lg:p-6 border-b border-slate-100 dark:border-slate-700 transition-colors duration-200">
+                <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Growth Ranking</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Total increase since tracking began</p>
             </div>
             
             <div id="ranking-container" class="flex-1 lg:overflow-y-auto p-4 space-y-3 scrollbar-hide">
-                <div class="animate-pulse flex items-center p-3 rounded-lg border border-slate-100 bg-slate-50">
-                    <div class="rounded-full bg-slate-200 h-10 w-10"></div>
+                <div class="animate-pulse flex items-center p-3 rounded-lg border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                    <div class="rounded-full bg-slate-200 dark:bg-slate-700 h-10 w-10"></div>
                     <div class="ml-4 flex-1 space-y-2">
-                        <div class="h-4 bg-slate-200 rounded w-1/2"></div>
-                        <div class="h-3 bg-slate-200 rounded w-1/3"></div>
+                        <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+                        <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
                     </div>
                 </div>
             </div>

@@ -25,7 +25,6 @@ const CASA_AMOR = [
     "tierraaa_._"
 ];
 
-
 const EXPELLED = [
     // "alannahkeyser"
 ];
@@ -46,6 +45,161 @@ const EXPELLED = [
         combined: { datasets: [], stats: [] }
     };
 
+    let isDark = false;
+
+    // --- Animated Logo Initialization ---
+    function initAnimatedLogo() {
+        const title = document.querySelector('.site-title');
+        const heart = document.querySelector('.heart-container');
+        const heartSvg = heart ? heart.querySelector('svg') : null;
+        if (!title || !heart || !heartSvg) return;
+
+        const SWIPE_DELAY = 300;
+        const SWIPE_DURATION = 2000;
+        const STILL_DURATION = 1500;
+        const FADE_DURATION = 600;
+        const SOFT_EDGE = 28;
+
+        function easeInOut(t) {
+            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        }
+
+        function run() {
+            const titleRect = title.getBoundingClientRect();
+            const heartW = heartSvg.getBoundingClientRect().width || 42;
+            const titleW = titleRect.width;
+            const heartCenter = heartW / 2;
+
+            const startX = -heartW;
+            const endX = titleW;
+            const totalTravel = endX - startX;
+
+            let startTime = null;
+
+            function step(ts) {
+                if (!startTime) startTime = ts;
+                const elapsed = ts - startTime - SWIPE_DELAY;
+
+                if (elapsed < 0) {
+                    title.style.webkitMaskImage = 'linear-gradient(to right, transparent 0%, transparent 100%)';
+                    title.style.maskImage = title.style.webkitMaskImage;
+                    heart.style.left = startX + 'px';
+                    heart.style.transform = 'translateY(-50%)';
+                    requestAnimationFrame(step);
+                    return;
+                }
+
+                const rawT = Math.min(elapsed / SWIPE_DURATION, 1);
+                const t = easeInOut(rawT);
+
+                const heartX = startX + t * totalTravel;
+                heart.style.left = heartX + 'px';
+                heart.style.transform = 'translateY(-50%)';
+
+                const revealEdgePx = heartX + heartCenter;
+                const solidEndPx  = revealEdgePx - SOFT_EDGE;
+                const fadeEndPx   = revealEdgePx;
+
+                const solidPct = Math.min(100, Math.max(0, (solidEndPx / titleW) * 100));
+                const fadePct  = Math.min(100, Math.max(0, (fadeEndPx  / titleW) * 100));
+
+                let mask;
+                if (fadePct <= 0) {
+                    mask = 'linear-gradient(to right, transparent 0%, transparent 100%)';
+                } else if (solidPct >= 100) {
+                    mask = 'linear-gradient(to right, black 0%, black 100%)';
+                } else if (solidPct <= 0) {
+                    mask = `linear-gradient(to right, transparent 0%, black ${fadePct.toFixed(2)}%, transparent ${fadePct.toFixed(2)}%, transparent 100%)`;
+                } else {
+                    mask = `linear-gradient(to right, black 0%, black ${solidPct.toFixed(2)}%, transparent ${fadePct.toFixed(2)}%, transparent 100%)`;
+                }
+
+                title.style.webkitMaskImage = mask;
+                title.style.maskImage = mask;
+
+                if (rawT < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    title.style.webkitMaskImage = 'none';
+                    title.style.maskImage = 'none';
+                    heart.style.left = endX + 'px';
+
+                    setTimeout(() => {
+                        heart.style.transition = `opacity ${FADE_DURATION}ms ease-in-out`;
+                        heart.style.opacity = '0';
+                    }, STILL_DURATION);
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
+        if (document.fonts) {
+            document.fonts.ready.then(run);
+        } else {
+            setTimeout(run, 300);
+        }
+    }
+
+    // --- Theme Logic ---
+    function initTheme() {
+        const themeCheckbox = document.getElementById('theme-toggle-checkbox');
+        
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            isDark = true;
+            themeCheckbox.checked = true;
+            setTheme(true);
+        } else {
+            isDark = false;
+            themeCheckbox.checked = false;
+            setTheme(false);
+        }
+
+        themeCheckbox.addEventListener('change', (e) => {
+            setTheme(e.target.checked);
+        });
+    }
+
+    function setTheme(dark) {
+        isDark = dark;
+        
+        const textLight = document.getElementById('text-light');
+        const textDark = document.getElementById('text-dark');
+        const iconSun = document.getElementById('icon-sun');
+        const iconMoon = document.getElementById('icon-moon');
+        const themeThumb = document.getElementById('theme-thumb');
+
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('color-theme', 'dark');
+            
+            textLight.classList.add('opacity-0');
+            textDark.classList.remove('opacity-0');
+            iconSun.classList.add('opacity-0');
+            iconMoon.classList.remove('opacity-0');
+            
+            themeThumb.style.transform = 'translateX(72px)'; 
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('color-theme', 'light');
+            
+            textLight.classList.remove('opacity-0');
+            textDark.classList.add('opacity-0');
+            iconSun.classList.remove('opacity-0');
+            iconMoon.classList.add('opacity-0');
+            
+            themeThumb.style.transform = 'translateX(0)';
+        }
+
+        if (globalData.original.datasets.length > 0) {
+            applyThemeColors();
+            if (chartInstance) {
+                updateChartThemeOptions();
+                chartInstance.update();
+            }
+            renderSidebar(globalData[currentTab].stats);
+        }
+    }
+
     function getIconImage(path, color) {
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path fill="${encodeURIComponent(color)}" d="${path}"/></svg>`;
         const img = new Image();
@@ -54,18 +208,20 @@ const EXPELLED = [
     }
 
     async function init() {
+        initTheme();
         try {
             const response = await fetch(URL);
             if (!response.ok) throw new Error('Failed to fetch dataset');
             const rawData = await response.json();
             processData(rawData);
+            
             const badge = document.getElementById('status-badge');
-            badge.className = 'bg-green-50 text-green-700 text-xs font-semibold px-3 py-1 rounded-full border border-green-200 flex items-center gap-2';
-            badge.innerHTML = `<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg><span class="hidden lg:inline">Live & Synced</span><span class="lg:hidden">Live</span>`;
+            badge.className = 'order-1 lg:order-2 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200 dark:border-green-800 flex items-center gap-2 transition-colors duration-200';
+            badge.innerHTML = `<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg><span class="inline">Live & Synced</span>`;
         } catch (error) {
             console.error('Error fetching data:', error);
             const badge = document.getElementById('status-badge');
-            badge.className = 'bg-red-50 text-red-700 text-xs font-semibold px-3 py-1 rounded-full border border-red-200 flex items-center gap-2';
+            badge.className = 'order-1 lg:order-2 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-red-200 dark:border-red-800 flex items-center gap-2 transition-colors duration-200';
             badge.innerHTML = `Error loading data`;
         }
     }
@@ -82,8 +238,8 @@ const EXPELLED = [
         const btnCasa = document.getElementById('tab-casa-amor');
         const btnCombined = document.getElementById('tab-combined');
         
-        const activeClass = "px-3 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-slate-800 transition-all whitespace-nowrap";
-        const inactiveClass = "px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-700 transition-all whitespace-nowrap";
+        const activeClass = "px-3 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100 transition-all whitespace-nowrap";
+        const inactiveClass = "px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all whitespace-nowrap";
 
         btnOriginal.className = (tab === 'original') ? activeClass : inactiveClass;
         btnCasa.className = (tab === 'casa_amor') ? activeClass : inactiveClass;
@@ -98,7 +254,6 @@ const EXPELLED = [
         const expelledLower = EXPELLED.map(u => u.toLowerCase());
         const casaAmorLower = CASA_AMOR.map(u => u.toLowerCase());
 
-        // 1. Filter and Group valid data
         const validData = data.filter(d => {
             if (d.followersCount === undefined || !d.timestamp) return false;
             const rawName = String(d.username).trim().toLowerCase();
@@ -147,20 +302,24 @@ const EXPELLED = [
             grouped[cleanName].points = points;
         }
 
-        // 2. Identify subsets of users per tab
-        const allValidNames = Object.keys(grouped).filter(name => grouped[name].points.length > 0).sort();
+        const allValidNames = Object.keys(grouped).filter(name => grouped[name].points.length > 0);
         const originalNames = allValidNames.filter(name => !casaAmorLower.includes(name));
         const casaAmorNames = allValidNames.filter(name => casaAmorLower.includes(name));
         const combinedNames = [...allValidNames];
 
-        // 3. Helper to generate deep, vibrant palettes per tab
         function generateColorMap(usernames) {
             const map = {};
-            const total = usernames.length;
-            usernames.forEach((username, idx) => {
-                const hue = Math.floor((idx * 360) / total);
-                // 38% lightness creates deep, rich colors that prevent neon/brightness issues against white
-                map[username] = `hsl(${hue}, 75%, 38%)`;
+            const GOLDEN_ANGLE = 137.508;
+            
+            const sortedByFollowers = [...usernames].sort((a, b) => {
+                const aLast = grouped[a].points[grouped[a].points.length - 1].y;
+                const bLast = grouped[b].points[grouped[b].points.length - 1].y;
+                return bLast - aLast; 
+            });
+
+            sortedByFollowers.forEach((username, idx) => {
+                const hue = Math.floor((idx * GOLDEN_ANGLE) % 360);
+                map[username] = hue;
             });
             return map;
         }
@@ -178,7 +337,6 @@ const EXPELLED = [
         globalData.combined.datasets = [];
         globalData.combined.stats = [];
 
-        // 4. Build Datasets
         for (let cleanName in grouped) {
             const points = grouped[cleanName].points;
             const username = grouped[cleanName].originalUsername;
@@ -209,24 +367,15 @@ const EXPELLED = [
                 const bombshellKey = Object.keys(typeof BOMBSHELL_CONTESTANTS !== 'undefined' ? BOMBSHELL_CONTESTANTS : {}).find(k => k.toLowerCase() === cleanName);
                 let bombshellTime = bombshellKey ? getAdjTime(BOMBSHELL_CONTESTANTS[bombshellKey]) : null;
                 
-                let hasDumped = false;
-                let hasBombshell = false;
-                let isBombshell = !!bombshellTime;
-                
                 const createDatasetObj = (colorMap) => {
-                    const color = colorMap[cleanName];
-                    const bombIcon = getIconImage(SVG_BOMB, color);
-                    const doorIcon = getIconImage(SVG_DOOR, color);
-                    let legendIconStyle = dumpedTime ? doorIcon : (isBombshell ? bombIcon : 'circle');
-                    
-                    const pointStyles = [];
+                    const customHue = colorMap[cleanName];
+                    const pointStyleTypes = [];
                     const pointRadii = [];
                     
-                    // Reset iteration flags for dataset clone
                     let innerHasDumped = false;
                     let innerHasBombshell = false;
 
-                    points.forEach((pt, i) => {
+                    points.forEach((pt) => {
                         let pointIsBomb = false;
                         let pointIsDoor = false;
                         if (bombshellTime && pt.x.getTime() >= bombshellTime && !innerHasBombshell) {
@@ -238,13 +387,13 @@ const EXPELLED = [
                             innerHasDumped = true;
                         }
                         if (pointIsDoor) {
-                            pointStyles.push(doorIcon);
+                            pointStyleTypes.push('door');
                             pointRadii.push(7);
                         } else if (pointIsBomb) {
-                            pointStyles.push(bombIcon);
+                            pointStyleTypes.push('bomb');
                             pointRadii.push(7);
                         } else {
-                            pointStyles.push('circle');
+                            pointStyleTypes.push('circle');
                             pointRadii.push(1);
                         }
                     });
@@ -252,16 +401,16 @@ const EXPELLED = [
                     return {
                         label: `@${username}`,
                         data: points,
-                        borderColor: color,
-                        backgroundColor: color,
-                        borderWidth: 2,
-                        tension: 0.3,
-                        pointStyle: pointStyles,
+                        customHue: customHue,
+                        isDumped: !!dumpedTime,
+                        isBombshell: !!bombshellTime,
+                        pointStyleTypes: pointStyleTypes,
                         pointRadius: pointRadii,
                         pointHoverRadius: 6,
+                        borderWidth: 2,
+                        tension: 0.3,
                         fill: false,
                         spanGaps: true,
-                        legendPointStyle: legendIconStyle,
                         segment: {
                             borderDash: ctx => {
                                 const p0Time = points[ctx.p0DataIndex].x.getTime();
@@ -296,15 +445,59 @@ const EXPELLED = [
 
         ['original', 'casa_amor', 'combined'].forEach(tabKey => {
             globalData[tabKey].datasets.sort(sortDescByFollowers);
-            
             globalData[tabKey].datasets.forEach((ds, index) => {
                 ds.order = index;
             });
-
             globalData[tabKey].stats.sort((a, b) => b.increase - a.increase);
         });
 
+        applyThemeColors();
         switchTab(currentTab);
+    }
+
+    function applyThemeColors() {
+        const lightness = isDark ? 65 : 42; 
+
+        ['original', 'casa_amor', 'combined'].forEach(tabKey => {
+            globalData[tabKey].datasets.forEach(ds => {
+                const color = `hsl(${ds.customHue}, 84%, ${lightness}%)`;
+                
+                ds.borderColor = color;
+                ds.backgroundColor = color;
+                
+                const bombIcon = getIconImage(SVG_BOMB, color);
+                const doorIcon = getIconImage(SVG_DOOR, color);
+
+                ds.legendPointStyle = ds.isDumped ? doorIcon : (ds.isBombshell ? bombIcon : 'circle');
+
+                ds.pointStyle = ds.pointStyleTypes.map(type => {
+                    if(type === 'door') return doorIcon;
+                    if(type === 'bomb') return bombIcon;
+                    return 'circle';
+                });
+            });
+        });
+    }
+
+    function updateChartThemeOptions() {
+        const textColor = isDark ? '#e2e8f0' : '#475569'; 
+        const gridColor = isDark ? '#334155' : '#f1f5f9'; 
+        const tooltipBg = isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.9)';
+        const tooltipText = '#f8fafc';
+
+        if(chartInstance) {
+            chartInstance.options.scales.x.ticks.color = textColor;
+            chartInstance.options.scales.y.ticks.color = textColor;
+            chartInstance.options.scales.y.grid.color = gridColor;
+            
+            if (chartInstance.options.plugins.legend.labels) {
+                chartInstance.options.plugins.legend.labels.color = textColor;
+            }
+            
+            chartInstance.options.plugins.tooltip.backgroundColor = tooltipBg;
+            chartInstance.options.plugins.tooltip.titleColor = tooltipText;
+            chartInstance.options.plugins.tooltip.bodyColor = tooltipText;
+        }
     }
 
     function renderChart(datasets) {
@@ -312,11 +505,12 @@ const EXPELLED = [
         if (chartInstance) {
             chartInstance.destroy();
         }
+        
+        const initialTextColor = isDark ? '#e2e8f0' : '#475569';
+        
         chartInstance = new Chart(ctx, {
             type: 'line',
-            data: {
-                datasets
-            },
+            data: { datasets },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
@@ -329,13 +523,11 @@ const EXPELLED = [
                     legend: {
                         position: 'bottom',
                         labels: {
+                            color: initialTextColor,
                             usePointStyle: true,
                             boxWidth: 16,
                             padding: 20,
-                            font: {
-                                family: 'Inter',
-                                size: 12
-                            },
+                            font: { family: 'Inter', size: 12 },
                             generateLabels: function(chart) {
                                 return chart.data.datasets.map((dataset, i) => ({
                                     text: dataset.label,
@@ -350,15 +542,8 @@ const EXPELLED = [
                         }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                        titleFont: {
-                            family: 'Inter',
-                            size: 13
-                        },
-                        bodyFont: {
-                            family: 'Inter',
-                            size: 12
-                        },
+                        titleFont: { family: 'Inter', size: 13 },
+                        bodyFont: { family: 'Inter', size: 12 },
                         padding: 12,
                         cornerRadius: 8,
                         itemSort: function(a, b) {
@@ -367,9 +552,7 @@ const EXPELLED = [
                         callbacks: {
                             label: function(context) {
                                 let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
+                                if (label) label += ': ';
                                 if (context.parsed.y !== null) {
                                     label += new Intl.NumberFormat('en-US').format(context.parsed.y);
                                 }
@@ -383,33 +566,15 @@ const EXPELLED = [
                         type: 'time',
                         time: {
                             tooltipFormat: 'MMM d, yyyy HH:mm',
-                            displayFormats: {
-                                hour: 'MMM d, HH:mm',
-                                day: 'MMM d'
-                            }
+                            displayFormats: { hour: 'MMM d, HH:mm', day: 'MMM d' }
                         },
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            font: {
-                                family: 'Inter'
-                            },
-                            color: '#64748b',
-                            maxRotation: 45,
-                            minRotation: 45
-                        }
+                        grid: { display: false },
+                        ticks: { font: { family: 'Inter' }, maxRotation: 45, minRotation: 45 }
                     },
                     y: {
-                        grid: {
-                            color: '#f1f5f9',
-                            drawBorder: false,
-                        },
+                        grid: { drawBorder: false },
                         ticks: {
-                            font: {
-                                family: 'Inter'
-                            },
-                            color: '#64748b',
+                            font: { family: 'Inter' },
                             callback: function(value) {
                                 if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
                                 if (value >= 1000) return (value / 1000).toFixed(1) + 'k';
@@ -420,13 +585,16 @@ const EXPELLED = [
                 }
             }
         });
+
+        updateChartThemeOptions();
+        chartInstance.update();
     }
 
     function renderSidebar(stats) {
         const container = document.getElementById('ranking-container');
         container.innerHTML = '';
         if (stats.length === 0) {
-            container.innerHTML = `<div class="text-sm text-slate-500 text-center py-8">No valid data found.</div>`;
+            container.innerHTML = `<div class="text-sm text-slate-500 dark:text-slate-400 text-center py-8">No valid data found.</div>`;
             return;
         }
         stats.forEach((stat, index) => {
@@ -434,27 +602,36 @@ const EXPELLED = [
             const currentFormatted = new Intl.NumberFormat('en-US').format(stat.current);
             const isPositive = stat.increase >= 0;
             const signStr = isPositive ? '+' : '';
-            const textClass = isPositive ? 'text-green-600' : 'text-red-500';
-            const bgClass = isPositive ? 'bg-green-50' : 'bg-red-50';
-            let rankBadge = `<span class="text-xs font-bold text-slate-400 w-5 text-center">${index+1}</span>`;
+            
+            const textClass = isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400';
+            const bgClass = isPositive ? 'bg-green-50 dark:bg-green-900/30' : 'bg-red-50 dark:bg-red-900/30';
+            
+            let rankBadge = `<span class="text-xs font-bold text-slate-400 dark:text-slate-300 w-5 text-center">${index+1}</span>`;
             if (index === 0) rankBadge = `<span class="text-lg" title="1st Place">🥇</span>`;
             if (index === 1) rankBadge = `<span class="text-lg" title="2nd Place">🥈</span>`;
             if (index === 2) rankBadge = `<span class="text-lg" title="3rd Place">🥉</span>`;
-            const nameHtml = stat.fullName ? `<p class="text-[11px] text-slate-400 truncate mt-0.5">${stat.fullName}</p>` : '';
+            
+            const nameHtml = stat.fullName ? `<p class="text-[11px] text-slate-400 dark:text-slate-300 truncate mt-0.5">${stat.fullName}</p>` : '';
+            
             const cardHtml = `
-                <div class="flex items-center p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors bg-white shadow-sm">
+                <div class="flex items-center p-3 rounded-lg border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors bg-white dark:bg-slate-800 shadow-sm group">
                     <div class="mr-3 flex items-center justify-center w-6 flex-shrink-0">
                         ${rankBadge}
                     </div>
                     <div class="flex-1 min-w-0 pr-2">
-                        <p class="text-sm font-semibold text-slate-800 truncate">@${stat.username}</p>
+                        <p class="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate flex items-center">
+                            @${stat.username}
+                            <a href="https://instagram.com/${stat.username}" target="_blank" rel="noopener noreferrer" class="ml-1 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors opacity-100 lg:opacity-0 group-hover:opacity-100 focus:opacity-100" title="View Instagram Profile" aria-label="Visit ${stat.username}'s Instagram">
+                                &#8599;
+                            </a>
+                        </p>
                         ${nameHtml}
                     </div>
                     <div class="text-right ml-2 flex flex-col items-end flex-shrink-0">
                         <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold ${bgClass} ${textClass} mb-1">
                             ${signStr}${increaseFormatted}
                         </span>
-                        <span class="text-[11px] font-medium text-slate-500">${currentFormatted} total</span>
+                        <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">${currentFormatted} total</span>
                     </div>
                 </div>
             `;
@@ -467,5 +644,6 @@ const EXPELLED = [
         document.getElementById('tab-casa-amor').addEventListener('click', () => switchTab('casa_amor'));
         document.getElementById('tab-combined').addEventListener('click', () => switchTab('combined'));
         init();
+        initAnimatedLogo();
     });
 })();
