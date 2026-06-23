@@ -45,7 +45,8 @@ const IGNORED_DATA = {
 // =================================================================
 
 (function() {
-    const _0x1a = ["\x75\x66\x56\x45\x68\x4a\x63\x73\x30\x51\x42\x38\x44\x32\x70\x71\x32", "\x68\x74\x74\x70\x73\x3A\x2F\x2F\x61\x70\x69\x2E\x61\x70\x69\x66\x79\x2E\x63\x6F\x6D\x2F\x76\x32\x2F\x64\x61\x74\x61\x73\x65\x74\x73\x2F", "\x2F\x69\x74\x65\x6D\x73"];
+    // Obfuscated Apify Key-Value Store Record URL
+    const _0x1a = ["\x56\x45\x76\x6f\x66\x42\x56\x4d\x32\x59\x62\x30\x75\x77\x6d\x73\x6b", "\x68\x74\x74\x70\x73\x3a\x2f\x2f\x61\x70\x69\x2e\x61\x70\x69\x66\x79\x2e\x63\x6f\x6d\x2f\x76\x32\x2f\x6b\x65\x79\x2d\x76\x61\x6c\x75\x65\x2d\x73\x74\x6f\x72\x65\x73\x2f", "\x2f\x72\x65\x63\x6f\x72\x64\x73\x2f\x66\x6f\x6c\x6c\x6f\x77\x65\x72\x73\x5f\x68\x69\x73\x74\x6f\x72\x79"];
     const URL = _0x1a[1] + _0x1a[0] + _0x1a[2];
     
     // SVG Paths
@@ -217,7 +218,6 @@ const IGNORED_DATA = {
         }
     }
 
-    // --- Fixed Encoding SVG String Generator ---
     function getIconImageString(path, color) {
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path fill="${color}" d="${path}"/></svg>`;
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
@@ -233,7 +233,7 @@ const IGNORED_DATA = {
         initTheme();
         try {
             const response = await fetch(URL);
-            if (!response.ok) throw new Error('Failed to fetch dataset');
+            if (!response.ok) throw new Error('Failed to fetch data');
             const rawData = await response.json();
             processData(rawData);
             
@@ -276,11 +276,9 @@ const IGNORED_DATA = {
         const expelledLower = EXPELLED.map(u => u.toLowerCase());
         const casaAmorKeysLower = Object.keys(typeof CASA_AMOR !== 'undefined' ? CASA_AMOR : {}).map(u => u.toLowerCase());
 
-        // Process IGNORED_DATA array/string formatting into snapped time buckets
         const ignoredTimes = {};
         if (typeof IGNORED_DATA !== 'undefined') {
             for (let u in IGNORED_DATA) {
-                // Safely handles both single strings or arrays if passed
                 const times = Array.isArray(IGNORED_DATA[u]) ? IGNORED_DATA[u] : [IGNORED_DATA[u]];
                 ignoredTimes[u.toLowerCase()] = times.map(t => {
                     const rawDate = new Date(t);
@@ -304,7 +302,6 @@ const IGNORED_DATA = {
             const coeff = 1000 * 60 * 5;
             const snappedTime = Math.round(rawDate.getTime() / coeff) * coeff;
             
-            // Evaluates against the ignored times dictionary and completely skips processing the bucket
             if (ignoredTimes[rawName] && ignoredTimes[rawName].includes(snappedTime)) {
                 return;
             }
@@ -485,7 +482,7 @@ const IGNORED_DATA = {
                         }
                     };
                 };
-                
+
                 if (isCasaAmor) {
                     globalData.casa_amor.stats.push(statObj);
                     globalData.casa_amor.datasets.push(createDatasetObj(palettes.casa_amor, 'casa_amor'));
@@ -552,14 +549,12 @@ const IGNORED_DATA = {
             chartInstance.options.scales.y.ticks.color = textColor;
             chartInstance.options.scales.y.grid.color = gridColor;
             
-            // Native desktop tooltip theme support
             chartInstance.options.plugins.tooltip.backgroundColor = tooltipBg;
             chartInstance.options.plugins.tooltip.titleColor = tooltipText;
             chartInstance.options.plugins.tooltip.bodyColor = tooltipText;
         }
     }
 
-    // --- Custom HTML Tooltip Handler (Mobile Only) ---
     const getOrCreateTooltip = (chart) => {
         let tooltipEl = chart.canvas.parentNode.querySelector('div.custom-tooltip');
         if (!tooltipEl) {
@@ -633,8 +628,6 @@ const IGNORED_DATA = {
         tooltipEl.style.transform = `translate(${translateX}, 10px)`;
     };
 
-
-    // --- Custom HTML Legend Builder ---
     function buildCustomLegend(chart) {
         const legendContainer = document.getElementById('custom-legend');
         legendContainer.innerHTML = '';
@@ -669,15 +662,14 @@ const IGNORED_DATA = {
 
             item.onclick = () => {
                 chart.setDatasetVisibility(i, !chart.isDatasetVisible(i));
-                chart.update('none'); // Update without full animation cycle
+                chart.update('none'); 
                 buildCustomLegend(chart);
-                renderSidebar(); // Re-render the sidebar to filter out hidden datasets seamlessly
+                renderSidebar(); 
             };
             legendContainer.appendChild(item);
         });
     }
 
-    // Adjust Tooltip behavior dynamically on window resize
     window.addEventListener('resize', () => {
         if (chartInstance) {
             const isDesktop = window.innerWidth >= 1024;
@@ -783,12 +775,10 @@ const IGNORED_DATA = {
             return;
         }
 
-        // Dynamically fetch visible usernames from the active chart
         const visibleUsernames = chartInstance.data.datasets
             .filter((ds, index) => chartInstance.isDatasetVisible(index))
             .map(ds => ds.label.replace('@', '').toLowerCase());
 
-        // Filter the pre-sorted stats to only render ranking blocks for those visible usernames
         const stats = globalData[currentTab].stats.filter(stat => 
             visibleUsernames.includes(stat.username.toLowerCase())
         );
@@ -798,7 +788,6 @@ const IGNORED_DATA = {
             return;
         }
         
-        // Render filtered stats - dynamically adjusting ranks smoothly via the array index
         stats.forEach((stat, index) => {
             const increaseFormatted = new Intl.NumberFormat('en-US').format(stat.increase);
             const currentFormatted = new Intl.NumberFormat('en-US').format(stat.current);
