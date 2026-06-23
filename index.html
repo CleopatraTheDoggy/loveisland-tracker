@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Island.Guru USA S8 Tracker</title>
+    <meta name="description" content="A Live Instagram follower tracker for Love Island USA Season 8. Track LoveIsland contestants, including Casa Amor, since day one of the show with leaderboard, graphs, and stats.">
     <meta name="theme-color" content="#db2777">
+
+    <!-- Essential SEO Tags -->
+    <link rel="canonical" href="https://island.guru/">
+    <meta name="robots" content="index, follow">
+    <meta name="keywords" content="Love Island USA, Love Island, LoveIsland, LoveIsland USA, Season 8, Instagram tracker, follower count, Casa Amor, bombshells, reality TV stats, live data, leaderboard">
 
     <link rel="icon" type="image/svg+xml" sizes="16x16 32x32" href="/img/icons/favicon-simple.svg">
     <link rel="icon" type="image/svg+xml" sizes="any" href="/img/icons/favicon-main.svg">
@@ -19,9 +25,9 @@
     <link rel="manifest" href="/img/icons/site.webmanifest">
     <meta name="msapplication-config" content="/img/icons/browserconfig.xml">
     
-    <meta name="author" content="Plant">
-    <meta name="web_author" content="Plant">
-    <meta property="og:article:author" content="Plant">
+    <meta name="author" content="Plant Chant">
+    <meta name="web_author" content="Plant Chant">
+    <meta property="og:article:author" content="Plant Chant">
     <link rel="author" href="https://github.com/CleopatraTheDoggy">
     
     <meta property="og:type" content="website">
@@ -39,6 +45,28 @@
     
     <link rel="alternate" type="application/json+oembed" href="https://island.guru/json/oembed.json" title="Island.Guru oEmbed Profile">
 
+    <!-- JSON-LD Structured Data for Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Island.Guru - Love Island USA Follower Tracker",
+      "url": "https://island.guru/",
+      "description": "Live Instagram follower tracking dashboard for Love Island USA Season 8. View daily statistics, growth charts, and leaderboards for LoveIsland orignal, bombshell, and Casa Amor contestants.",
+      "applicationCategory": "EntertainmentApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Plant Chant",
+        "url": "https://github.com/CleopatraTheDoggy"
+      }
+    }
+    </script>
+
     <script src="https://cloud.umami.is/script.js" data-website-id="d4044f68-b37e-4710-9c74-4a7936a3719c"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -54,9 +82,8 @@
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col min-h-screen lg:h-screen lg:overflow-hidden transition-colors duration-200">
 
-    <!-- STICKY LOGO BAR: Stays glued to top on mobile, sits in the center on desktop -->
+    <!-- STICKY LOGO BAR -->
     <div class="sticky top-0 z-30 w-full bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex justify-center items-center py-1 lg:fixed lg:top-0 lg:left-1/2 lg:-translate-x-1/2 lg:w-[350px] lg:h-[76px] lg:border-none lg:bg-transparent pointer-events-none transition-colors duration-200">
-        <!-- Animated Logo -->
         <div class="scene" role="img" aria-label="Island.Guru animated title">
             <div class="title-wrap">
                 <div class="site-title">Island.Guru</div>
@@ -114,19 +141,16 @@
         </div>
     </div>
 
-    <!-- MAIN HEADER: Scrolls away on mobile, sticky on desktop -->
+    <!-- MAIN HEADER -->
     <header class="relative z-20 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 lg:px-6 py-3 lg:h-[76px] lg:sticky lg:top-0 flex justify-between items-center transition-colors duration-200">
         
-        <!-- Title Information -->
         <div class="flex flex-col justify-center">
             <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white">Follower Growth Dashboard</h1>
             <p class="text-[11px] sm:text-xs lg:text-sm text-slate-500 dark:text-slate-400">Live Data of LoveIsland Contestants USA S8</p>
         </div>
         
-        <!-- Controls: Status & Toggle -->
         <div class="flex flex-col lg:flex-row items-end lg:items-center gap-2 lg:gap-5 flex-shrink-0">
             
-            <!-- Status Badge -->
             <div id="status-badge" class="order-1 lg:order-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 dark:border-blue-800 flex items-center gap-2 transition-colors duration-200">
                 <svg class="animate-spin h-3 w-3 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -135,7 +159,6 @@
                 <span class="inline">Fetching...</span>
             </div>
 
-            <!-- Neomorphic Dark Mode Toggle -->
             <div class="order-2 lg:order-1 flex items-center transform scale-[0.85] origin-right lg:scale-100 pointer-events-auto">
                 <input type="checkbox" id="theme-toggle-checkbox" class="sr-only" />
                 <label for="theme-toggle-checkbox" class="neo-toggle relative flex items-center cursor-pointer w-28 h-10 rounded-full transition-colors duration-300 overflow-hidden">
@@ -165,13 +188,10 @@
                     </div>
                 </div>
 
-                <!-- Canvas Wrapper: Enforces consistent height independently of legend -->
-                <!-- Added min-h-[450px] on mobile to perfectly prevent graph collapse on tab switch -->
                 <div id="chart-wrapper" class="flex-1 relative w-full h-full min-h-[450px] lg:min-h-0 mb-2">
                     <canvas id="followerChart"></canvas>
                 </div>
 
-                <!-- Custom HTML Legend Wrapper -->
                 <div class="w-full flex-shrink-0 border-t border-slate-100 dark:border-slate-700 pt-2 pb-1 max-h-[140px] lg:max-h-[160px] overflow-y-auto">
                     <div id="custom-legend" class="flex flex-wrap justify-center gap-x-3 gap-y-2 px-1"></div>
                 </div>
@@ -197,6 +217,29 @@
         </div>
 
     </main>
+
+    <!-- SEO & E-E-A-T Footer Dropdown -->
+    <footer class="w-full bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 transition-colors duration-200 z-20 relative text-xs text-slate-400 dark:text-slate-500">
+        <details class="w-full group cursor-pointer [&_summary::-webkit-details-marker]:hidden">
+            <summary class="p-3 text-center list-none outline-none hover:text-slate-600 dark:hover:text-slate-300 transition-colors select-none flex items-center justify-center gap-1 opacity-80 hover:opacity-100 text-[11px] sm:text-xs">
+                <!-- Clean SVG Info Icon -->
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="font-medium">About this tracker</span>
+            </summary>
+            <div class="px-4 pb-4 max-w-3xl mx-auto text-center leading-relaxed text-[11px] sm:text-xs space-y-3">
+                <p>Island.Guru is the ultimate live Instagram follower tracker for Love Island USA Season 8. Watch daily statistics, growth charts, and leaderboards for the original cast, bombshells, and Casa Amor islanders. Track every islander's journey with real-time follower counts and trends throughout the show's duration with 100% public data that is updated frequently.</p>
+                
+                <!-- E-E-A-T Trust Signals Panel -->
+                <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 mt-2 pt-3 border-t border-slate-200 dark:border-slate-700/60 text-[10px] text-slate-400 dark:text-slate-500">
+                    <span><strong>Disclaimer:</strong> Not affiliated with Peacock, ITV, or Love Island.</span>
+                    <span class="hidden sm:inline">&bull;</span>
+                    <span><strong>Privacy:</strong> No personal user data is collected or sold.</span>
+                    <span class="hidden sm:inline">&bull;</span>
+                    <span><strong>Data:</strong> 100% publicly available metrics.</span>
+                </div>
+            </div>
+        </details>
+    </footer>
 
     <script src="script.js"></script>
 </body>
