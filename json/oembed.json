@@ -4,5 +4,8 @@
   "provider_name": "Island.Guru",
   "provider_url": "https://island.guru/",
   "author_name": "Made by Plant",
-  "author_url": "https://cleopatrathedoggy.github.io/loveisland-tracker"
+  "author_url": "https://island.guru/",
+  "thumbnail_url": "https://island.guru/img/icons/favicon-512x512.png",
+  "thumbnail_width": 512,
+  "thumbnail_height": 512
 }
