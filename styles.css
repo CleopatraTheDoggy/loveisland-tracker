@@ -40,8 +40,8 @@ body {
    ============================================================== */
 .scene {
     width: 100%;
-    height: 80px; /* Increased to prevent clipping low descenders like 'g' */
-    max-width: 350px; /* Increased to prevent heart clipping on the right edge */
+    height: 80px; 
+    max-width: 350px; 
     margin: 0 auto;
     display: flex;
     align-items: center;
@@ -58,8 +58,8 @@ body {
 .site-title {
     font-family: 'Pacifico', cursive, sans-serif;
     font-size: 34px;
-    line-height: 1.5; /* Gives vertical space for cursive fonts */
-    padding: 10px 16px; /* Expanding the box bounds prevents -webkit-background-clip from clipping the loops */
+    line-height: 1.5; 
+    padding: 10px 16px; 
     background: linear-gradient(135deg, #de81c2 0%, #ff4aac 35%, #de81c2 60%, #ff8aea 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;

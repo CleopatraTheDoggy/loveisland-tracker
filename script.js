@@ -42,8 +42,11 @@ const EXPELLED = [
 (function() {
     const _0x1a = ["\x75\x66\x56\x45\x68\x4a\x63\x73\x30\x51\x42\x38\x44\x32\x70\x71\x32", "\x68\x74\x74\x70\x73\x3A\x2F\x2F\x61\x70\x69\x2E\x61\x70\x69\x66\x79\x2E\x63\x6F\x6D\x2F\x76\x32\x2F\x64\x61\x74\x61\x73\x65\x74\x73\x2F", "\x2F\x69\x74\x65\x6D\x73"];
     const URL = _0x1a[1] + _0x1a[0] + _0x1a[2];
+    
+    // SVG Paths
     const SVG_BOMB = "M11 21A7 7 0 1011 7A7 7 0 0011 21ZM9 5h4v2H9V5ZM12 5c0-2 2-3 4-3v1c-1.5 0-3 .5-3 2H12ZM17 1l1.5 1.5L17 4l-1.5-1.5L17 1Z";
     const SVG_DOOR = "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16h2V5h10v16h2ZM7 5v16l8-2V7L7 5ZM13 11.5a1 1 0 110 2 1 1 0 010-2Z";
+    const SVG_HOUSE = "M12 3L9 6v-2h-2v4L4 11h2v9h4v-6h4v6h4v-9h2Z";
     
     let chartInstance = null;
     let currentTab = 'original';
@@ -203,15 +206,23 @@ const EXPELLED = [
             if (chartInstance) {
                 updateChartThemeOptions();
                 chartInstance.update();
+                buildCustomLegend(chartInstance); // Re-render custom legend to fetch proper theme colors
             }
             renderSidebar(globalData[currentTab].stats);
         }
     }
 
-    function getIconImage(path, color) {
+    // Direct SVG string generator for custom HTML rendering
+    function getIconImageString(path, color) {
+        if(path === 'circle') return '';
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path fill="${encodeURIComponent(color)}" d="${path}"/></svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + svg;
+    }
+    
+    // Legacy canvas icon generator
+    function getIconImage(path, color) {
         const img = new Image();
-        img.src = 'data:image/svg+xml;charset=utf-8,' + svg;
+        img.src = getIconImageString(path, color);
         return img;
     }
 
@@ -375,17 +386,25 @@ const EXPELLED = [
                 const bombshellKey = Object.keys(typeof BOMBSHELL_CONTESTANTS !== 'undefined' ? BOMBSHELL_CONTESTANTS : {}).find(k => k.toLowerCase() === cleanName);
                 let bombshellTime = bombshellKey ? getAdjTime(BOMBSHELL_CONTESTANTS[bombshellKey]) : null;
                 
-                const createDatasetObj = (colorMap) => {
+                const createDatasetObj = (colorMap, tabName) => {
                     const customHue = colorMap[cleanName];
                     const pointStyleTypes = [];
                     const pointRadii = [];
                     
                     let innerHasDumped = false;
                     let innerHasBombshell = false;
+                    const isCasaAmor = casaAmorLower.includes(cleanName);
 
-                    points.forEach((pt) => {
+                    // Legend Icon Hierarchy
+                    let legendIconType = 'circle';
+                    if (tabName === 'combined' && isCasaAmor) legendIconType = 'house';
+                    else if (dumpedTime) legendIconType = 'door';
+                    else if (bombshellTime) legendIconType = 'bomb';
+
+                    points.forEach((pt, idx) => {
                         let pointIsBomb = false;
                         let pointIsDoor = false;
+                        
                         if (bombshellTime && pt.x.getTime() >= bombshellTime && !innerHasBombshell) {
                             pointIsBomb = true;
                             innerHasBombshell = true;
@@ -394,24 +413,26 @@ const EXPELLED = [
                             pointIsDoor = true;
                             innerHasDumped = true;
                         }
-                        if (pointIsDoor) {
-                            pointStyleTypes.push('door');
-                            pointRadii.push(7);
-                        } else if (pointIsBomb) {
-                            pointStyleTypes.push('bomb');
-                            pointRadii.push(7);
-                        } else {
-                            pointStyleTypes.push('circle');
-                            pointRadii.push(1);
+                        
+                        let currentPointType = 'circle';
+                        if (pointIsDoor) currentPointType = 'door';
+                        else if (pointIsBomb) currentPointType = 'bomb';
+                        
+                        // Force first point to be a House if Casa Amor user on Combined Tab
+                        if (idx === 0 && tabName === 'combined' && isCasaAmor) {
+                            currentPointType = 'house';
                         }
+
+                        pointStyleTypes.push(currentPointType);
+                        pointRadii.push(currentPointType === 'circle' ? 1 : 7);
                     });
 
                     return {
                         label: `@${username}`,
                         data: points,
+                        hidden: !!dumpedTime, // Hides Dumped contestants initially
                         customHue: customHue,
-                        isDumped: !!dumpedTime,
-                        isBombshell: !!bombshellTime,
+                        legendIconType: legendIconType,
                         pointStyleTypes: pointStyleTypes,
                         pointRadius: pointRadii,
                         pointHoverRadius: 6,
@@ -434,14 +455,14 @@ const EXPELLED = [
                 
                 if (isCasaAmor) {
                     globalData.casa_amor.stats.push(statObj);
-                    globalData.casa_amor.datasets.push(createDatasetObj(palettes.casa_amor));
+                    globalData.casa_amor.datasets.push(createDatasetObj(palettes.casa_amor, 'casa_amor'));
                 } else {
                     globalData.original.stats.push(statObj);
-                    globalData.original.datasets.push(createDatasetObj(palettes.original));
+                    globalData.original.datasets.push(createDatasetObj(palettes.original, 'original'));
                 }
                 
                 globalData.combined.stats.push(statObj);
-                globalData.combined.datasets.push(createDatasetObj(palettes.combined));
+                globalData.combined.datasets.push(createDatasetObj(palettes.combined, 'combined'));
             }
         }
 
@@ -475,12 +496,12 @@ const EXPELLED = [
                 
                 const bombIcon = getIconImage(SVG_BOMB, color);
                 const doorIcon = getIconImage(SVG_DOOR, color);
-
-                ds.legendPointStyle = ds.isDumped ? doorIcon : (ds.isBombshell ? bombIcon : 'circle');
+                const houseIcon = getIconImage(SVG_HOUSE, color);
 
                 ds.pointStyle = ds.pointStyleTypes.map(type => {
                     if(type === 'door') return doorIcon;
                     if(type === 'bomb') return bombIcon;
+                    if(type === 'house') return houseIcon;
                     return 'circle';
                 });
             });
@@ -490,22 +511,130 @@ const EXPELLED = [
     function updateChartThemeOptions() {
         const textColor = isDark ? '#e2e8f0' : '#475569'; 
         const gridColor = isDark ? '#334155' : '#f1f5f9'; 
-        const tooltipBg = isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.9)';
-        const tooltipText = '#f8fafc';
-
+        
         if(chartInstance) {
             chartInstance.options.scales.x.ticks.color = textColor;
             chartInstance.options.scales.y.ticks.color = textColor;
             chartInstance.options.scales.y.grid.color = gridColor;
+        }
+    }
+
+    // --- Custom HTML Tooltip Handler ---
+    const getOrCreateTooltip = (chart) => {
+        let tooltipEl = chart.canvas.parentNode.querySelector('div.custom-tooltip');
+        if (!tooltipEl) {
+            tooltipEl = document.createElement('div');
+            tooltipEl.classList.add('custom-tooltip');
+            tooltipEl.style.position = 'absolute';
+            tooltipEl.style.zIndex = '50';
+            tooltipEl.style.transition = 'opacity 0.1s ease, transform 0.1s ease';
+            chart.canvas.parentNode.appendChild(tooltipEl);
+        }
+        return tooltipEl;
+    };
+
+    const customTooltipHandler = (context) => {
+        const {chart, tooltip} = context;
+        const tooltipEl = getOrCreateTooltip(chart);
+
+        if (tooltip.opacity === 0) {
+            tooltipEl.style.opacity = 0;
+            tooltipEl.style.pointerEvents = 'none';
+            return;
+        }
+
+        if (tooltip.body) {
+            const dataPoints = context.tooltip.dataPoints;
+            const sortedDp = [...dataPoints].sort((a,b) => b.raw.y - a.raw.y);
+
+            // Container natively scrolls on overflow
+            let html = `
+                <div class="px-3 py-2 bg-slate-900/95 dark:bg-slate-800/95 text-white rounded-lg shadow-xl text-[11px] lg:text-xs font-sans border border-slate-700/50 max-h-[250px] lg:max-h-[350px] overflow-y-auto pointer-events-auto overscroll-contain">
+                    <div class="font-bold mb-2 pb-1 border-b border-slate-700">${tooltip.title[0]}</div>
+                    <div class="flex flex-col gap-1">
+            `;
+
+            sortedDp.forEach(dp => {
+                const ds = chart.data.datasets[dp.datasetIndex];
+                const val = new Intl.NumberFormat('en-US').format(dp.raw.y);
+                html += `
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-1.5 truncate">
+                            <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${ds.borderColor}"></span>
+                            <span class="truncate">${ds.label}</span>
+                        </div>
+                        <span class="font-medium flex-shrink-0">${val}</span>
+                    </div>
+                `;
+            });
+
+            html += `</div></div>`;
+            tooltipEl.innerHTML = html;
+        }
+
+        const {offsetLeft: positionX, offsetTop: positionY} = chart.canvas;
+        const chartWidth = chart.canvas.offsetWidth;
+
+        let posX = positionX + tooltip.caretX;
+        let posY = positionY + tooltip.caretY;
+
+        let translateX = '-50%';
+        if (tooltip.caretX > chartWidth - 120) {
+            translateX = '-100%';
+            posX -= 10;
+        } else if (tooltip.caretX < 120) {
+            translateX = '0%';
+            posX += 10;
+        }
+
+        tooltipEl.style.opacity = 1;
+        tooltipEl.style.pointerEvents = 'auto'; // Permits touch scrolling inside the tooltip
+        tooltipEl.style.left = posX + 'px';
+        tooltipEl.style.top = posY + 'px';
+        tooltipEl.style.transform = `translate(${translateX}, 10px)`;
+    };
+
+
+    // --- Custom HTML Legend Builder ---
+    function buildCustomLegend(chart) {
+        const legendContainer = document.getElementById('custom-legend');
+        legendContainer.innerHTML = '';
+        const datasets = chart.data.datasets;
+        const textColorClass = isDark ? 'text-slate-300' : 'text-slate-600';
+
+        datasets.forEach((dataset, i) => {
+            const item = document.createElement('div');
+            item.className = `flex items-center cursor-pointer text-xs lg:text-sm font-medium transition-opacity duration-200 px-1 py-1 lg:px-2 ${textColorClass}`;
             
-            if (chartInstance.options.plugins.legend.labels) {
-                chartInstance.options.plugins.legend.labels.color = textColor;
+            if (!chart.isDatasetVisible(i)) {
+                item.classList.add('opacity-40', 'line-through');
+            } else {
+                item.classList.add('opacity-100');
+            }
+
+            const color = dataset.borderColor;
+            const iconType = dataset.legendIconType;
+            let iconHtml = '';
+            
+            if (iconType === 'door') {
+                iconHtml = `<img src="${getIconImageString(SVG_DOOR, color)}" class="w-3.5 h-3.5 mr-1.5 object-contain">`;
+            } else if (iconType === 'bomb') {
+                iconHtml = `<img src="${getIconImageString(SVG_BOMB, color)}" class="w-3.5 h-3.5 mr-1.5 object-contain">`;
+            } else if (iconType === 'house') {
+                iconHtml = `<img src="${getIconImageString(SVG_HOUSE, color)}" class="w-3.5 h-3.5 mr-1.5 object-contain">`;
+            } else {
+                iconHtml = `<span class="inline-block w-3 h-3 rounded-full mr-1.5 flex-shrink-0" style="background-color: ${color}"></span>`;
             }
             
-            chartInstance.options.plugins.tooltip.backgroundColor = tooltipBg;
-            chartInstance.options.plugins.tooltip.titleColor = tooltipText;
-            chartInstance.options.plugins.tooltip.bodyColor = tooltipText;
-        }
+            item.innerHTML = `${iconHtml}<span>${dataset.label}</span>`;
+
+            item.onclick = () => {
+                chart.setDatasetVisibility(i, !chart.isDatasetVisible(i));
+                chart.update();
+                buildCustomLegend(chart); // Refresh strike-through classes dynamically
+            };
+            legendContainer.appendChild(item);
+        });
     }
 
     function renderChart(datasets) {
@@ -513,8 +642,6 @@ const EXPELLED = [
         if (chartInstance) {
             chartInstance.destroy();
         }
-        
-        const currentTextColor = isDark ? '#e2e8f0' : '#475569';
         
         chartInstance = new Chart(ctx, {
             type: 'line',
@@ -529,47 +656,11 @@ const EXPELLED = [
                 },
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: currentTextColor,
-                            usePointStyle: true,
-                            boxWidth: 16,
-                            padding: 20,
-                            font: { family: 'Inter', size: 12 },
-                            generateLabels: function(chart) {
-                                // Forcing the current text color directly into the fontColor property
-                                // of each generated label overrides Chart.js's default inheritance quirks.
-                                return chart.data.datasets.map((dataset, i) => ({
-                                    text: dataset.label,
-                                    fillStyle: dataset.backgroundColor,
-                                    strokeStyle: dataset.borderColor,
-                                    lineWidth: dataset.borderWidth,
-                                    pointStyle: dataset.legendPointStyle || 'circle',
-                                    hidden: !chart.isDatasetVisible(i),
-                                    datasetIndex: i,
-                                    fontColor: isDark ? '#e2e8f0' : '#475569' 
-                                }));
-                            }
-                        }
+                        display: false // Disabled Native Legend to stop chart resizing
                     },
                     tooltip: {
-                        titleFont: { family: 'Inter', size: 13 },
-                        bodyFont: { family: 'Inter', size: 12 },
-                        padding: 12,
-                        cornerRadius: 8,
-                        itemSort: function(a, b) {
-                            return b.raw.y - a.raw.y;
-                        },
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) label += ': ';
-                                if (context.parsed.y !== null) {
-                                    label += new Intl.NumberFormat('en-US').format(context.parsed.y);
-                                }
-                                return label;
-                            }
-                        }
+                        enabled: false, // Disabled Native Tooltip to use Custom HTML Scrollable Tooltip
+                        external: customTooltipHandler
                     }
                 },
                 scales: {
@@ -599,6 +690,7 @@ const EXPELLED = [
 
         updateChartThemeOptions();
         chartInstance.update();
+        buildCustomLegend(chartInstance); // Initialize Custom Legend
     }
 
     function renderSidebar(stats) {

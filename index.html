@@ -39,7 +39,7 @@
     
     <link rel="alternate" type="application/json+oembed" href="https://island.guru/json/oembed.json" title="Island.Guru oEmbed Profile">
 
-    <script defer src="https://cloud.umami.is/script.js" data-website-id="d4044f68-b37e-4710-9c74-4a7936a3719c"></script>
+    <script src="https://cloud.umami.is/script.js" data-website-id="d4044f68-b37e-4710-9c74-4a7936a3719c"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -54,7 +54,9 @@
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col min-h-screen lg:h-screen lg:overflow-hidden transition-colors duration-200">
 
+    <!-- STICKY LOGO BAR: Stays glued to top on mobile, sits in the center on desktop -->
     <div class="sticky top-0 z-30 w-full bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex justify-center items-center py-1 lg:fixed lg:top-0 lg:left-1/2 lg:-translate-x-1/2 lg:w-[350px] lg:h-[76px] lg:border-none lg:bg-transparent pointer-events-none transition-colors duration-200">
+        <!-- Animated Logo -->
         <div class="scene" role="img" aria-label="Island.Guru animated title">
             <div class="title-wrap">
                 <div class="site-title">Island.Guru</div>
@@ -112,15 +114,19 @@
         </div>
     </div>
 
+    <!-- MAIN HEADER: Scrolls away on mobile, sticky on desktop -->
     <header class="relative z-20 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 lg:px-6 py-3 lg:h-[76px] lg:sticky lg:top-0 flex justify-between items-center transition-colors duration-200">
         
+        <!-- Title Information -->
         <div class="flex flex-col justify-center">
             <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white">Follower Growth Dashboard</h1>
             <p class="text-[11px] sm:text-xs lg:text-sm text-slate-500 dark:text-slate-400">Live Data of LoveIsland Contestants USA S8</p>
         </div>
         
+        <!-- Controls: Status & Toggle -->
         <div class="flex flex-col lg:flex-row items-end lg:items-center gap-2 lg:gap-5 flex-shrink-0">
             
+            <!-- Status Badge -->
             <div id="status-badge" class="order-1 lg:order-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 dark:border-blue-800 flex items-center gap-2 transition-colors duration-200">
                 <svg class="animate-spin h-3 w-3 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -129,6 +135,7 @@
                 <span class="inline">Fetching...</span>
             </div>
 
+            <!-- Neomorphic Dark Mode Toggle -->
             <div class="order-2 lg:order-1 flex items-center transform scale-[0.85] origin-right lg:scale-100 pointer-events-auto">
                 <input type="checkbox" id="theme-toggle-checkbox" class="sr-only" />
                 <label for="theme-toggle-checkbox" class="neo-toggle relative flex items-center cursor-pointer w-28 h-10 rounded-full transition-colors duration-300 overflow-hidden">
@@ -146,10 +153,10 @@
 
     <main class="flex-1 flex flex-col lg:flex-row w-full lg:overflow-hidden relative z-10">
         
-        <div class="flex-1 p-3 lg:p-6 flex flex-col min-h-[500px] lg:min-h-0">
+        <div class="flex-1 p-3 lg:p-6 flex flex-col min-h-[600px] lg:min-h-0 h-full">
             <div class="bg-white dark:bg-slate-800 p-3 lg:p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col relative h-full transition-colors duration-200">
                 
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-3 flex-shrink-0">
                     <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Followers Over Time</h2>
                     <div class="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-lg self-start sm:self-auto overflow-x-auto border border-transparent dark:border-slate-700 transition-colors duration-200">
                         <button id="tab-original" class="px-3 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap">Original</button>
@@ -158,9 +165,16 @@
                     </div>
                 </div>
 
-                <div class="flex-1 relative w-full h-full min-h-[350px] lg:min-h-0">
+                <!-- Canvas Wrapper: Enforces consistent height independently of legend -->
+                <div id="chart-wrapper" class="flex-1 relative w-full min-h-[300px] mb-2">
                     <canvas id="followerChart"></canvas>
                 </div>
+
+                <!-- Custom HTML Legend Wrapper -->
+                <div class="w-full flex-shrink-0 border-t border-slate-100 dark:border-slate-700 pt-2 pb-1 max-h-[140px] lg:max-h-[160px] overflow-y-auto">
+                    <div id="custom-legend" class="flex flex-wrap justify-center gap-x-3 gap-y-2 px-1"></div>
+                </div>
+
             </div>
         </div>
 
