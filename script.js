@@ -38,6 +38,10 @@ const EXPELLED = [
     "traetaylorr" // Media-misinformed to have stayed on Casa Amor.
 ];
 
+const IGNORED_DATA = {
+    "chaynehra": "2026-06-21T15:06:05.981481Z" // Account didn't exist yet.
+};
+
 // =================================================================
 
 (function() {
@@ -209,7 +213,7 @@ const EXPELLED = [
                 chartInstance.update();
                 buildCustomLegend(chartInstance); 
             }
-            renderSidebar(globalData[currentTab].stats);
+            renderSidebar();
         }
     }
 
@@ -264,15 +268,27 @@ const EXPELLED = [
         btnCombined.className = (tab === 'combined') ? activeClass : inactiveClass;
 
         renderChart(globalData[tab].datasets);
-        renderSidebar(globalData[tab].stats);
+        renderSidebar();
     }
 
     function processData(data) {
         const grouped = {};
         const expelledLower = EXPELLED.map(u => u.toLowerCase());
-        
-        // Grab Casa Amor keys dynamically to evaluate both original isolation logic & new timestamp logic
         const casaAmorKeysLower = Object.keys(typeof CASA_AMOR !== 'undefined' ? CASA_AMOR : {}).map(u => u.toLowerCase());
+
+        // Process IGNORED_DATA array/string formatting into snapped time buckets
+        const ignoredTimes = {};
+        if (typeof IGNORED_DATA !== 'undefined') {
+            for (let u in IGNORED_DATA) {
+                // Safely handles both single strings or arrays if passed
+                const times = Array.isArray(IGNORED_DATA[u]) ? IGNORED_DATA[u] : [IGNORED_DATA[u]];
+                ignoredTimes[u.toLowerCase()] = times.map(t => {
+                    const rawDate = new Date(t);
+                    const coeff = 1000 * 60 * 5;
+                    return Math.round(rawDate.getTime() / coeff) * coeff;
+                });
+            }
+        }
 
         const validData = data.filter(d => {
             if (d.followersCount === undefined || !d.timestamp) return false;
@@ -286,8 +302,14 @@ const EXPELLED = [
             const rawName = String(d.username).trim().toLowerCase();
             const rawDate = new Date(d.timestamp);
             const coeff = 1000 * 60 * 5;
-            const snappedTime = new Date(Math.round(rawDate.getTime() / coeff) * coeff);
-            const timeKey = snappedTime.getTime();
+            const snappedTime = Math.round(rawDate.getTime() / coeff) * coeff;
+            
+            // Evaluates against the ignored times dictionary and completely skips processing the bucket
+            if (ignoredTimes[rawName] && ignoredTimes[rawName].includes(snappedTime)) {
+                return;
+            }
+            
+            const timeKey = snappedTime;
             
             if (!grouped[rawName]) {
                 grouped[rawName] = {
@@ -420,7 +442,6 @@ const EXPELLED = [
                             innerHasDumped = true;
                         }
                         
-                        // Detect the exact data point where the user first entered Casa Amor based on timestamp
                         if (casaAmorTime && pt.x.getTime() >= casaAmorTime && !innerHasCasaAmorEntry) {
                             pointIsCasaAmorEntry = true;
                             innerHasCasaAmorEntry = true;
@@ -430,11 +451,9 @@ const EXPELLED = [
                         if (pointIsDoor) currentPointType = 'door';
                         else if (pointIsBomb) currentPointType = 'bomb';
                         
-                        // Apply house icon to the very first point found ON or AFTER their Casa timestamp
                         if (tabName === 'combined' && isCasaAmor && pointIsCasaAmorEntry) {
                             currentPointType = 'house';
                         } else if (idx === 0 && tabName === 'combined' && isCasaAmor && !casaAmorTime) {
-                            // Fallback in case a Casa Amor user is added without a timestamp property
                             currentPointType = 'house';
                         }
 
@@ -445,7 +464,7 @@ const EXPELLED = [
                     return {
                         label: `@${username}`,
                         data: points,
-                        hidden: !!dumpedTime, // Auto-Hides Dumped Contestants explicitly
+                        hidden: !!dumpedTime, 
                         customHue: customHue,
                         legendIconType: legendIconType,
                         pointStyleTypes: pointStyleTypes,
@@ -460,10 +479,7 @@ const EXPELLED = [
                                 const p0Time = points[ctx.p0DataIndex].x.getTime();
                                 if (dumpedTime && p0Time >= dumpedTime) return [6, 4];
                                 if (bombshellTime && p0Time < bombshellTime) return [6, 4];
-                                
-                                // Dashed line logic specifically before the Casa Amor timestamp
                                 if (isCasaAmor && casaAmorTime && p0Time < casaAmorTime) return [6, 4];
-                                
                                 return undefined;
                             }
                         }
@@ -655,6 +671,7 @@ const EXPELLED = [
                 chart.setDatasetVisibility(i, !chart.isDatasetVisible(i));
                 chart.update('none'); // Update without full animation cycle
                 buildCustomLegend(chart);
+                renderSidebar(); // Re-render the sidebar to filter out hidden datasets seamlessly
             };
             legendContainer.appendChild(item);
         });
@@ -695,12 +712,10 @@ const EXPELLED = [
                         display: false 
                     },
                     tooltip: {
-                        // Enabled natively on Desktop, Disabled natively on Mobile (handoff to custom)
                         enabled: isDesktop,
                         usePointStyle: true,
                         boxWidth: 8,
                         
-                        // Custom external handler will take over if window is mobile-sized
                         external: function(context) {
                             if (window.innerWidth >= 1024) {
                                 let tooltipEl = document.querySelector('.custom-tooltip');
@@ -759,13 +774,31 @@ const EXPELLED = [
         buildCustomLegend(chartInstance); 
     }
 
-    function renderSidebar(stats) {
+    function renderSidebar() {
         const container = document.getElementById('ranking-container');
         container.innerHTML = '';
+
+        if (!chartInstance || !chartInstance.data.datasets) {
+            container.innerHTML = `<div class="text-sm text-slate-500 dark:text-slate-400 text-center py-8">No valid data found.</div>`;
+            return;
+        }
+
+        // Dynamically fetch visible usernames from the active chart
+        const visibleUsernames = chartInstance.data.datasets
+            .filter((ds, index) => chartInstance.isDatasetVisible(index))
+            .map(ds => ds.label.replace('@', '').toLowerCase());
+
+        // Filter the pre-sorted stats to only render ranking blocks for those visible usernames
+        const stats = globalData[currentTab].stats.filter(stat => 
+            visibleUsernames.includes(stat.username.toLowerCase())
+        );
+
         if (stats.length === 0) {
             container.innerHTML = `<div class="text-sm text-slate-500 dark:text-slate-400 text-center py-8">No valid data found.</div>`;
             return;
         }
+        
+        // Render filtered stats - dynamically adjusting ranks smoothly via the array index
         stats.forEach((stat, index) => {
             const increaseFormatted = new Intl.NumberFormat('en-US').format(stat.increase);
             const currentFormatted = new Intl.NumberFormat('en-US').format(stat.current);
