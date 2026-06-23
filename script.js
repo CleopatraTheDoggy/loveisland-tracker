@@ -206,17 +206,18 @@ const EXPELLED = [
             if (chartInstance) {
                 updateChartThemeOptions();
                 chartInstance.update();
-                buildCustomLegend(chartInstance); // Re-render custom legend to fetch proper theme colors
+                buildCustomLegend(chartInstance); 
             }
             renderSidebar(globalData[currentTab].stats);
         }
     }
 
-    // Direct SVG string generator for custom HTML rendering
+    // --- Fixed Encoding SVG String Generator ---
+    // encodeURIComponent securely URL-encodes all quotes (" and ') inside the SVG 
+    // to prevent the string from breaking the HTML tag when inserted as a src="" attribute.
     function getIconImageString(path, color) {
-        if(path === 'circle') return '';
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path fill="${encodeURIComponent(color)}" d="${path}"/></svg>`;
-        return 'data:image/svg+xml;charset=utf-8,' + svg;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path fill="${color}" d="${path}"/></svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     }
     
     // Legacy canvas icon generator
@@ -395,7 +396,6 @@ const EXPELLED = [
                     let innerHasBombshell = false;
                     const isCasaAmor = casaAmorLower.includes(cleanName);
 
-                    // Legend Icon Hierarchy
                     let legendIconType = 'circle';
                     if (tabName === 'combined' && isCasaAmor) legendIconType = 'house';
                     else if (dumpedTime) legendIconType = 'door';
@@ -418,7 +418,6 @@ const EXPELLED = [
                         if (pointIsDoor) currentPointType = 'door';
                         else if (pointIsBomb) currentPointType = 'bomb';
                         
-                        // Force first point to be a House if Casa Amor user on Combined Tab
                         if (idx === 0 && tabName === 'combined' && isCasaAmor) {
                             currentPointType = 'house';
                         }
@@ -430,7 +429,7 @@ const EXPELLED = [
                     return {
                         label: `@${username}`,
                         data: points,
-                        hidden: !!dumpedTime, // Hides Dumped contestants initially
+                        hidden: !!dumpedTime, 
                         customHue: customHue,
                         legendIconType: legendIconType,
                         pointStyleTypes: pointStyleTypes,
@@ -511,15 +510,22 @@ const EXPELLED = [
     function updateChartThemeOptions() {
         const textColor = isDark ? '#e2e8f0' : '#475569'; 
         const gridColor = isDark ? '#334155' : '#f1f5f9'; 
-        
+        const tooltipBg = isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.9)';
+        const tooltipText = '#f8fafc';
+
         if(chartInstance) {
             chartInstance.options.scales.x.ticks.color = textColor;
             chartInstance.options.scales.y.ticks.color = textColor;
             chartInstance.options.scales.y.grid.color = gridColor;
+            
+            // Native desktop tooltip theme support
+            chartInstance.options.plugins.tooltip.backgroundColor = tooltipBg;
+            chartInstance.options.plugins.tooltip.titleColor = tooltipText;
+            chartInstance.options.plugins.tooltip.bodyColor = tooltipText;
         }
     }
 
-    // --- Custom HTML Tooltip Handler ---
+    // --- Custom HTML Tooltip Handler (Mobile Only) ---
     const getOrCreateTooltip = (chart) => {
         let tooltipEl = chart.canvas.parentNode.querySelector('div.custom-tooltip');
         if (!tooltipEl) {
@@ -547,7 +553,6 @@ const EXPELLED = [
             const dataPoints = context.tooltip.dataPoints;
             const sortedDp = [...dataPoints].sort((a,b) => b.raw.y - a.raw.y);
 
-            // Container natively scrolls on overflow
             let html = `
                 <div class="px-3 py-2 bg-slate-900/95 dark:bg-slate-800/95 text-white rounded-lg shadow-xl text-[11px] lg:text-xs font-sans border border-slate-700/50 max-h-[250px] lg:max-h-[350px] overflow-y-auto pointer-events-auto overscroll-contain">
                     <div class="font-bold mb-2 pb-1 border-b border-slate-700">${tooltip.title[0]}</div>
@@ -588,7 +593,7 @@ const EXPELLED = [
         }
 
         tooltipEl.style.opacity = 1;
-        tooltipEl.style.pointerEvents = 'auto'; // Permits touch scrolling inside the tooltip
+        tooltipEl.style.pointerEvents = 'auto'; 
         tooltipEl.style.left = posX + 'px';
         tooltipEl.style.top = posY + 'px';
         tooltipEl.style.transform = `translate(${translateX}, 10px)`;
@@ -616,6 +621,7 @@ const EXPELLED = [
             const iconType = dataset.legendIconType;
             let iconHtml = '';
             
+            // Note: getIconImageString now securely encodes the SVG string
             if (iconType === 'door') {
                 iconHtml = `<img src="${getIconImageString(SVG_DOOR, color)}" class="w-3.5 h-3.5 mr-1.5 object-contain">`;
             } else if (iconType === 'bomb') {
@@ -630,18 +636,31 @@ const EXPELLED = [
 
             item.onclick = () => {
                 chart.setDatasetVisibility(i, !chart.isDatasetVisible(i));
-                chart.update();
-                buildCustomLegend(chart); // Refresh strike-through classes dynamically
+                chart.update('none'); // Update without full animation cycle
+                buildCustomLegend(chart);
             };
             legendContainer.appendChild(item);
         });
     }
+
+    // Adjust Tooltip behavior dynamically on window resize
+    window.addEventListener('resize', () => {
+        if (chartInstance) {
+            const isDesktop = window.innerWidth >= 1024;
+            if (chartInstance.options.plugins.tooltip.enabled !== isDesktop) {
+                chartInstance.options.plugins.tooltip.enabled = isDesktop;
+                chartInstance.update('none');
+            }
+        }
+    });
 
     function renderChart(datasets) {
         const ctx = document.getElementById('followerChart').getContext('2d');
         if (chartInstance) {
             chartInstance.destroy();
         }
+        
+        const isDesktop = window.innerWidth >= 1024;
         
         chartInstance = new Chart(ctx, {
             type: 'line',
@@ -656,11 +675,41 @@ const EXPELLED = [
                 },
                 plugins: {
                     legend: {
-                        display: false // Disabled Native Legend to stop chart resizing
+                        display: false 
                     },
                     tooltip: {
-                        enabled: false, // Disabled Native Tooltip to use Custom HTML Scrollable Tooltip
-                        external: customTooltipHandler
+                        // Enabled natively on Desktop, Disabled natively on Mobile (handoff to custom)
+                        enabled: isDesktop,
+                        usePointStyle: true,
+                        boxWidth: 8,
+                        
+                        // Custom external handler will take over if window is mobile-sized
+                        external: function(context) {
+                            if (window.innerWidth >= 1024) {
+                                let tooltipEl = document.querySelector('.custom-tooltip');
+                                if (tooltipEl) tooltipEl.style.opacity = 0;
+                                return;
+                            }
+                            customTooltipHandler(context);
+                        },
+                        
+                        titleFont: { family: 'Inter', size: 13 },
+                        bodyFont: { family: 'Inter', size: 12 },
+                        padding: 12,
+                        cornerRadius: 8,
+                        itemSort: function(a, b) {
+                            return b.raw.y - a.raw.y;
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('en-US').format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -690,7 +739,7 @@ const EXPELLED = [
 
         updateChartThemeOptions();
         chartInstance.update();
-        buildCustomLegend(chartInstance); // Initialize Custom Legend
+        buildCustomLegend(chartInstance); 
     }
 
     function renderSidebar(stats) {
