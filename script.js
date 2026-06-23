@@ -16,22 +16,22 @@ const BOMBSHELL_CONTESTANTS = {
     "kaydabosse": "2026-06-03T03:14:13.806403Z"
 };
 
-const CASA_AMOR = [
+const CASA_AMOR = {
     // Girls
-    "alannahkeyser",
-    "amoracachee",
-    "jaidenbacciocco",
-    "paaarpaaarri",
-    "sydney_eugene",
-    "tierraaa_._",
+    "alannahkeyser": "2026-06-22T03:07:29.699026Z",
+    "amoracachee": "2026-06-22T03:07:29.699026Z",
+    "jaidenbacciocco": "2026-06-22T03:07:29.699026Z",
+    "paaarpaaarri": "2026-06-22T03:07:29.699026Z",
+    "sydney_eugene": "2026-06-22T03:07:29.699026Z",
+    "tierraaa_._": "2026-06-22T03:07:29.699026Z",
     //Guys
-    "carl_witness_lee",
-    "coreysawyerjr",
-    "dylan_wrona",
-    "gal.tuch",
-    "_ronniegunter",
-    "traetaylorr"
-];
+    "carl_witness_lee": "2026-06-23T03:09:38.850699Z",
+    "coreysawyerjr": "2026-06-23T03:09:38.850699Z",
+    "dylan_wrona": "2026-06-23T03:09:38.850699Z",
+    "gal.tuch": "2026-06-23T03:09:38.850699Z",
+    "_ronniegunter": "2026-06-23T03:09:38.850699Z",
+    "traetaylorr": "2026-06-23T03:09:38.850699Z"
+};
 
 const EXPELLED = [
     // "alannahkeyser"
@@ -213,14 +213,11 @@ const EXPELLED = [
     }
 
     // --- Fixed Encoding SVG String Generator ---
-    // encodeURIComponent securely URL-encodes all quotes (" and ') inside the SVG 
-    // to prevent the string from breaking the HTML tag when inserted as a src="" attribute.
     function getIconImageString(path, color) {
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path fill="${color}" d="${path}"/></svg>`;
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     }
     
-    // Legacy canvas icon generator
     function getIconImage(path, color) {
         const img = new Image();
         img.src = getIconImageString(path, color);
@@ -272,7 +269,9 @@ const EXPELLED = [
     function processData(data) {
         const grouped = {};
         const expelledLower = EXPELLED.map(u => u.toLowerCase());
-        const casaAmorLower = CASA_AMOR.map(u => u.toLowerCase());
+        
+        // Grab Casa Amor keys dynamically to evaluate both original isolation logic & new timestamp logic
+        const casaAmorKeysLower = Object.keys(typeof CASA_AMOR !== 'undefined' ? CASA_AMOR : {}).map(u => u.toLowerCase());
 
         const validData = data.filter(d => {
             if (d.followersCount === undefined || !d.timestamp) return false;
@@ -323,8 +322,8 @@ const EXPELLED = [
         }
 
         const allValidNames = Object.keys(grouped).filter(name => grouped[name].points.length > 0);
-        const originalNames = allValidNames.filter(name => !casaAmorLower.includes(name));
-        const casaAmorNames = allValidNames.filter(name => casaAmorLower.includes(name));
+        const originalNames = allValidNames.filter(name => !casaAmorKeysLower.includes(name));
+        const casaAmorNames = allValidNames.filter(name => casaAmorKeysLower.includes(name));
         const combinedNames = [...allValidNames];
 
         function generateColorMap(usernames) {
@@ -384,8 +383,13 @@ const EXPELLED = [
 
                 const dumpedKey = Object.keys(typeof DUMPED_CONTESTANTS !== 'undefined' ? DUMPED_CONTESTANTS : {}).find(k => k.toLowerCase() === cleanName);
                 let dumpedTime = dumpedKey ? getAdjTime(DUMPED_CONTESTANTS[dumpedKey]) : null;
+                
                 const bombshellKey = Object.keys(typeof BOMBSHELL_CONTESTANTS !== 'undefined' ? BOMBSHELL_CONTESTANTS : {}).find(k => k.toLowerCase() === cleanName);
                 let bombshellTime = bombshellKey ? getAdjTime(BOMBSHELL_CONTESTANTS[bombshellKey]) : null;
+                
+                const casaAmorKey = Object.keys(typeof CASA_AMOR !== 'undefined' ? CASA_AMOR : {}).find(k => k.toLowerCase() === cleanName);
+                let casaAmorTime = casaAmorKey ? getAdjTime(CASA_AMOR[casaAmorKey]) : null;
+                const isCasaAmor = !!casaAmorKey;
                 
                 const createDatasetObj = (colorMap, tabName) => {
                     const customHue = colorMap[cleanName];
@@ -394,7 +398,7 @@ const EXPELLED = [
                     
                     let innerHasDumped = false;
                     let innerHasBombshell = false;
-                    const isCasaAmor = casaAmorLower.includes(cleanName);
+                    let innerHasCasaAmorEntry = false;
 
                     let legendIconType = 'circle';
                     if (tabName === 'combined' && isCasaAmor) legendIconType = 'house';
@@ -404,6 +408,7 @@ const EXPELLED = [
                     points.forEach((pt, idx) => {
                         let pointIsBomb = false;
                         let pointIsDoor = false;
+                        let pointIsCasaAmorEntry = false;
                         
                         if (bombshellTime && pt.x.getTime() >= bombshellTime && !innerHasBombshell) {
                             pointIsBomb = true;
@@ -414,11 +419,21 @@ const EXPELLED = [
                             innerHasDumped = true;
                         }
                         
+                        // Detect the exact data point where the user first entered Casa Amor based on timestamp
+                        if (casaAmorTime && pt.x.getTime() >= casaAmorTime && !innerHasCasaAmorEntry) {
+                            pointIsCasaAmorEntry = true;
+                            innerHasCasaAmorEntry = true;
+                        }
+                        
                         let currentPointType = 'circle';
                         if (pointIsDoor) currentPointType = 'door';
                         else if (pointIsBomb) currentPointType = 'bomb';
                         
-                        if (idx === 0 && tabName === 'combined' && isCasaAmor) {
+                        // Apply house icon to the very first point found ON or AFTER their Casa timestamp
+                        if (tabName === 'combined' && isCasaAmor && pointIsCasaAmorEntry) {
+                            currentPointType = 'house';
+                        } else if (idx === 0 && tabName === 'combined' && isCasaAmor && !casaAmorTime) {
+                            // Fallback in case a Casa Amor user is added without a timestamp property
                             currentPointType = 'house';
                         }
 
@@ -429,7 +444,7 @@ const EXPELLED = [
                     return {
                         label: `@${username}`,
                         data: points,
-                        hidden: !!dumpedTime, 
+                        hidden: !!dumpedTime, // Auto-Hides Dumped Contestants explicitly
                         customHue: customHue,
                         legendIconType: legendIconType,
                         pointStyleTypes: pointStyleTypes,
@@ -444,13 +459,15 @@ const EXPELLED = [
                                 const p0Time = points[ctx.p0DataIndex].x.getTime();
                                 if (dumpedTime && p0Time >= dumpedTime) return [6, 4];
                                 if (bombshellTime && p0Time < bombshellTime) return [6, 4];
+                                
+                                // Dashed line logic specifically before the Casa Amor timestamp
+                                if (isCasaAmor && casaAmorTime && p0Time < casaAmorTime) return [6, 4];
+                                
                                 return undefined;
                             }
                         }
                     };
                 };
-
-                const isCasaAmor = casaAmorLower.includes(cleanName);
                 
                 if (isCasaAmor) {
                     globalData.casa_amor.stats.push(statObj);
@@ -621,7 +638,6 @@ const EXPELLED = [
             const iconType = dataset.legendIconType;
             let iconHtml = '';
             
-            // Note: getIconImageString now securely encodes the SVG string
             if (iconType === 'door') {
                 iconHtml = `<img src="${getIconImageString(SVG_DOOR, color)}" class="w-3.5 h-3.5 mr-1.5 object-contain">`;
             } else if (iconType === 'bomb') {

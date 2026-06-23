@@ -166,7 +166,8 @@
                 </div>
 
                 <!-- Canvas Wrapper: Enforces consistent height independently of legend -->
-                <div id="chart-wrapper" class="flex-1 relative w-full min-h-[300px] mb-2">
+                <!-- Added min-h-[450px] on mobile to perfectly prevent graph collapse on tab switch -->
+                <div id="chart-wrapper" class="flex-1 relative w-full h-full min-h-[450px] lg:min-h-0 mb-2">
                     <canvas id="followerChart"></canvas>
                 </div>
 
