@@ -17,12 +17,20 @@ const BOMBSHELL_CONTESTANTS = {
 };
 
 const CASA_AMOR = [
+    // Girls
     "alannahkeyser",
     "amoracachee",
     "jaidenbacciocco",
     "paaarpaaarri",
     "sydney_eugene",
-    "tierraaa_._"
+    "tierraaa_._",
+    //Guys
+    "carl_witness_lee",
+    "coreysawyerjr",
+    "dylan_wrona",
+    "gal.tuch",
+    "_ronniegunter",
+    "traetaylorr"
 ];
 
 const EXPELLED = [
