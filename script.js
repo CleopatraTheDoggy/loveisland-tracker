@@ -26,15 +26,16 @@ const CASA_AMOR = {
     "tierraaa_._": "2026-06-22T03:07:29.699026Z",
     //Guys
     "carl_witness_lee": "2026-06-23T03:09:38.850699Z",
+    "chaynehra": "2026-06-23T03:09:38.850699Z", // Account claimed to be managed by friends/family [Unconfirmed to be official]
     "coreysawyerjr": "2026-06-23T03:09:38.850699Z",
     "dylan_wrona": "2026-06-23T03:09:38.850699Z",
     "gal.tuch": "2026-06-23T03:09:38.850699Z",
-    "_ronniegunter": "2026-06-23T03:09:38.850699Z",
-    "traetaylorr": "2026-06-23T03:09:38.850699Z"
+    "_ronniegunter": "2026-06-23T03:09:38.850699Z"
 };
 
 const EXPELLED = [
-    // "alannahkeyser"
+    // "alannahkeyser" // Expected to be expelled soon.
+    "traetaylorr" // Media-misinformed to have stayed on Casa Amor.
 ];
 
 // =================================================================
