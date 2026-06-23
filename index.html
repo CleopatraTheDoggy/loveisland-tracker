@@ -42,28 +42,100 @@
     <meta name="twitter:title" content="Love Island Instagram Follower Tracker">
     <meta name="twitter:description" content="Live data, follower growth tracking, and leaderboards for Love Island USA contestants, including full Casa Amor statistics.">
     <meta name="twitter:image" content="https://island.guru/img/og-preview.jpg">
-    
+
     <link rel="alternate" type="application/json+oembed" href="https://island.guru/json/oembed.json" title="Island.Guru oEmbed Profile">
 
     <!-- JSON-LD Structured Data for Rich Snippets -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Island.Guru - Love Island USA Follower Tracker",
-      "url": "https://island.guru/",
-      "description": "Live Instagram follower tracking dashboard for Love Island USA Season 8. View daily statistics, growth charts, and leaderboards for LoveIsland orignal, bombshell, and Casa Amor contestants.",
-      "applicationCategory": "EntertainmentApplication",
-      "operatingSystem": "All",
-      "offers": {
-        "@type": "Offer",
-        "price": "0"
-      },
-      "author": {
-        "@type": "Person",
-        "name": "Plant Chant",
-        "url": "https://github.com/CleopatraTheDoggy"
-      }
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://island.guru/#organization",
+          "name": "Island.Guru",
+          "url": "https://island.guru/",
+          "sameAs": [],
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://island.guru/img/icons/favicon-main.svg"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://island.guru/#website",
+          "url": "https://island.guru/",
+          "name": "Island.Guru",
+          "publisher": {
+            "@id": "https://island.guru/#organization"
+          },
+          "inLanguage": "en"
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://island.guru/#webapp",
+          "name": "Island.Guru - Love Island USA Follower Tracker",
+          "url": "https://island.guru/",
+          "description": "Live Instagram follower tracking dashboard for Love Island USA Season 8. View daily statistics, growth charts, and leaderboards for LoveIsland original, bombshell, and Casa Amor contestants.",
+          "applicationCategory": "EntertainmentApplication",
+          "operatingSystem": "All",
+          "offers": {
+            "@type": "Offer",
+            "price": "0"
+          },
+          "author": {
+            "@type": "Person",
+            "name": "Plant Chant",
+            "url": "https://github.com/CleopatraTheDoggy"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://island.guru/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is Island.Guru used for?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Island.Guru is a live Instagram follower tracker for Love Island USA Season 8 contestants, providing real-time follower counts, growth charts, and leaderboards."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Does Island.Guru track Casa Amor contestants?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, Island.Guru includes Instagram follower statistics for Casa Amor contestants alongside the original cast and bombshells."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How often is the follower data updated on Island.Guru?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The follower data is updated multiple times daily using automated processes to ensure accuracy and transparent historical tracking."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is personal user data collected by Island.Guru?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No, Island.Guru does not collect any personal user data; it sources all data directly from 100% public Instagram follower metrics."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does Island.Guru compare to other Love Island Instagram trackers?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Island.Guru provides automated, frequently updated live data with detailed growth charts and leaderboards, trusted by Love Island Twitter fan accounts for daily updates, which may offer more transparency and frequency than some competitors."
+              }
+            }
+          ]
+        }
+      ]
     }
     </script>
 
@@ -226,11 +298,36 @@
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span class="font-medium">About this tracker</span>
             </summary>
-            <div class="px-4 pb-4 max-w-3xl mx-auto text-center leading-relaxed text-[11px] sm:text-xs space-y-3">
-                <p>Island.Guru is the ultimate live Instagram follower tracker for Love Island USA Season 8. Watch daily statistics, growth charts, and leaderboards for the original cast, bombshells, and Casa Amor islanders. Track every islander's journey with real-time follower counts and trends throughout the show's duration with 100% public data that is updated frequently.</p>
+            
+            <div class="px-4 pb-4 max-w-3xl mx-auto text-left leading-relaxed text-[11px] sm:text-xs space-y-4">
+                <p class="text-center">Island.Guru is the ultimate live Instagram follower tracker for Love Island USA Season 8. Watch daily statistics, growth charts, and leaderboards for the original cast, bombshells, and Casa Amor islanders. Track every islander's journey with real-time follower counts and trends throughout the show's duration with 100% public data that is updated frequently.</p>
                 
+                <!-- SEO FAQ Section (Matches JSON-LD Schema exactly) -->
+                <div class="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-700/60">
+                    <div>
+                        <strong class="text-slate-600 dark:text-slate-300 block mb-0.5">What is Island.Guru used for?</strong>
+                        <p>Island.Guru is a live Instagram follower tracker for Love Island USA Season 8 contestants, providing real-time follower counts, growth charts, and leaderboards.</p>
+                    </div>
+                    <div>
+                        <strong class="text-slate-600 dark:text-slate-300 block mb-0.5">Does Island.Guru track Casa Amor contestants?</strong>
+                        <p>Yes, Island.Guru includes Instagram follower statistics for Casa Amor contestants alongside the original cast and bombshells.</p>
+                    </div>
+                    <div>
+                        <strong class="text-slate-600 dark:text-slate-300 block mb-0.5">How often is the follower data updated on Island.Guru?</strong>
+                        <p>The follower data is updated multiple times daily using automated processes to ensure accuracy and transparent historical tracking.</p>
+                    </div>
+                    <div>
+                        <strong class="text-slate-600 dark:text-slate-300 block mb-0.5">Is personal user data collected by Island.Guru?</strong>
+                        <p>No, Island.Guru does not collect any personal user data; it sources all data directly from 100% public Instagram follower metrics.</p>
+                    </div>
+                    <div>
+                        <strong class="text-slate-600 dark:text-slate-300 block mb-0.5">How does Island.Guru compare to other Love Island Instagram trackers?</strong>
+                        <p>Island.Guru provides automated, frequently updated live data with detailed growth charts and leaderboards, trusted by Love Island Twitter fan accounts for daily updates, which may offer more transparency and frequency than some competitors.</p>
+                    </div>
+                </div>
+
                 <!-- E-E-A-T Trust Signals Panel -->
-                <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 mt-2 pt-3 border-t border-slate-200 dark:border-slate-700/60 text-[10px] text-slate-400 dark:text-slate-500">
+                <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 mt-2 pt-3 border-t border-slate-200 dark:border-slate-700/60 text-[10px] text-center text-slate-400 dark:text-slate-500">
                     <span><strong>Disclaimer:</strong> Not affiliated with Peacock, ITV, or Love Island.</span>
                     <span class="hidden sm:inline">&bull;</span>
                     <span><strong>Privacy:</strong> No personal user data is collected or sold.</span>
@@ -240,7 +337,3 @@
             </div>
         </details>
     </footer>
-
-    <script src="script.js"></script>
-</body>
-</html>
