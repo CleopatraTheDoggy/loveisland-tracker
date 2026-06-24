@@ -829,6 +829,53 @@ const IGNORED_DATA = {
             container.insertAdjacentHTML('beforeend', cardHtml);
         });
     }
+
+    // --- About Tracker Interaction Logic ---
+    function initAboutTracker() {
+        const details = document.getElementById('about-details');
+        const faqArea = document.getElementById('about-faq-area');
+        if (!details || !faqArea) return;
+
+        // Handle clicks outside or above the FAQ area
+        document.addEventListener('click', (e) => {
+            if (details.hasAttribute('open')) {
+                const summary = details.querySelector('summary');
+                
+                // If they click the summary itself, the browser handles the toggle natively
+                if (summary && summary.contains(e.target)) return;
+
+                const faqRect = faqArea.getBoundingClientRect();
+                
+                // If the click is above the FAQ area (includes the text above it or outside the footer entirely)
+                if (e.clientY < faqRect.top) {
+                    details.removeAttribute('open');
+                }
+            }
+        });
+
+        // Handle swipe down to close
+        let touchStartY = 0;
+        document.addEventListener('touchstart', (e) => {
+            if (e.changedTouches.length > 0) {
+                touchStartY = e.changedTouches[0].screenY;
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            if (details.hasAttribute('open') && e.changedTouches.length > 0) {
+                const touchEndY = e.changedTouches[0].screenY;
+                const summary = details.querySelector('summary');
+                
+                // Don't trigger swipe close if they are just tapping the summary
+                if (summary && summary.contains(e.target)) return;
+
+                // Threshold of 60px down-swipe to ensure it wasn't a mistaken slight scroll
+                if (touchEndY - touchStartY > 60) {
+                    details.removeAttribute('open');
+                }
+            }
+        }, { passive: true });
+    }
     
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('tab-original').addEventListener('click', () => switchTab('original'));
@@ -836,5 +883,6 @@ const IGNORED_DATA = {
         document.getElementById('tab-combined').addEventListener('click', () => switchTab('combined'));
         init();
         initAnimatedLogo();
+        initAboutTracker();
     });
 })();
