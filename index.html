@@ -7,7 +7,6 @@
     <meta name="description" content="A Live Instagram follower tracker for Love Island USA Season 8. Track LoveIsland contestants, including Casa Amor, since day one of the show with leaderboard, graphs, and stats.">
     <meta name="theme-color" content="#db2777">
 
-    <!-- Essential SEO Tags -->
     <link rel="canonical" href="https://island.guru/">
     <meta name="robots" content="index, follow">
     <meta name="keywords" content="Love Island USA, Love Island, Island Guru, Season 8, follower tracker, Instagram tracker, Casa Amor, bombshells, reality TV stats, live data, leaderboard, LoveIsland, LoveIsland USA, Island.Guru, follower count, graphs">
@@ -17,11 +16,6 @@
     
     <link rel="icon" type="image/png" sizes="16x16" href="/img/icons/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/img/icons/favicon-32x32.png">
-    <!-- 
-    <link rel="icon" type="image/png" sizes="192x192" href="/img/icons/android-chrome-192x192.png">
-    -->
-
-    <!-- Search Favicons -->
     <link rel="icon" type="image/png" sizes="48x48" href="/img/icons/favicon-48x48.png">
     <link rel="icon" type="image/png" sizes="96x96" href="/img/icons/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/img/icons/favicon-192x192.png">
@@ -52,7 +46,6 @@
 
     <link rel="alternate" type="application/json+oembed" href="https://island.guru/json/oembed.json" title="Island.Guru oEmbed Profile">
 
-    <!-- JSON-LD Structured Data for Rich Snippets -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -146,7 +139,13 @@
     }
     </script>
 
-    <script src="https://cloud.umami.is/script.js" data-website-id="d4044f68-b37e-4710-9c74-4a7936a3719c"></script>
+    <link rel="preconnect" href="https://api.apify.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="d4044f68-b37e-4710-9c74-4a7936a3719c"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -154,14 +153,13 @@
             darkMode: 'class',
         }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col min-h-screen lg:h-screen lg:overflow-hidden transition-colors duration-200">
 
-    <!-- STICKY LOGO BAR -->
     <div class="sticky top-0 z-30 w-full bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex justify-center items-center py-1 lg:fixed lg:top-0 lg:left-1/2 lg:-translate-x-1/2 lg:w-[350px] lg:h-[76px] lg:border-none lg:bg-transparent pointer-events-none transition-colors duration-200">
         <div class="scene" role="img" aria-label="Island.Guru animated title">
             <div class="title-wrap">
@@ -220,7 +218,6 @@
         </div>
     </div>
 
-    <!-- MAIN HEADER -->
     <header class="relative z-20 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 lg:px-6 py-3 lg:h-[76px] lg:sticky lg:top-0 flex justify-between items-center transition-colors duration-200">
         
         <div class="flex flex-col justify-center">
@@ -261,9 +258,9 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-3 flex-shrink-0">
                     <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Followers Over Time</h2>
                     <div class="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-lg self-start sm:self-auto overflow-x-auto border border-transparent dark:border-slate-700 transition-colors duration-200">
-                        <button id="tab-original" class="px-3 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap">Original</button>
-                        <button id="tab-casa-amor" class="px-3 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap">Casa Amor</button>
-                        <button id="tab-combined" class="px-3 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap">Combined</button>
+                        <button id="tab-original" class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap">Original</button>
+                        <button id="tab-casa-amor" class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap">Casa Amor</button>
+                        <button id="tab-combined" class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap">Combined</button>
                     </div>
                 </div>
 
@@ -297,11 +294,9 @@
 
     </main>
 
-    <!-- SEO & E-E-A-T Footer Dropdown -->
     <footer class="w-full bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 transition-colors duration-200 z-20 relative text-xs text-slate-400 dark:text-slate-500">
         <details class="w-full group cursor-pointer [&_summary::-webkit-details-marker]:hidden">
             <summary class="p-3 text-center list-none outline-none hover:text-slate-600 dark:hover:text-slate-300 transition-colors select-none flex items-center justify-center gap-1 opacity-80 hover:opacity-100 text-[11px] sm:text-xs">
-                <!-- Clean SVG Info Icon -->
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span class="font-medium">About this tracker</span>
             </summary>
@@ -309,7 +304,6 @@
             <div class="px-4 pb-4 max-w-3xl mx-auto text-left leading-relaxed text-[11px] sm:text-xs space-y-4">
                 <p class="text-center">Island.Guru is the ultimate live Instagram follower tracker for Love Island USA Season 8. Watch daily statistics, growth charts, and leaderboards for the original cast, bombshells, and Casa Amor islanders. Track every islander's journey with real-time follower counts and trends throughout the show's duration with 100% public data that is updated frequently.</p>
                 
-                <!-- SEO FAQ Section (Matches JSON-LD Schema exactly) -->
                 <div class="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-700/60">
                     <div>
                         <strong class="text-slate-600 dark:text-slate-300 block mb-0.5">What is Island.Guru used for?</strong>
@@ -333,7 +327,6 @@
                     </div>
                 </div>
 
-                <!-- E-E-A-T Trust Signals Panel -->
                 <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 mt-2 pt-3 border-t border-slate-200 dark:border-slate-700/60 text-[10px] text-center text-slate-400 dark:text-slate-500">
                     <span><strong>Disclaimer:</strong> Not affiliated with Peacock, ITV, or Love Island.</span>
                     <span class="hidden sm:inline">&bull;</span>

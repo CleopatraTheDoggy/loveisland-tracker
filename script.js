@@ -260,8 +260,8 @@ const IGNORED_DATA = {
         const btnCasa = document.getElementById('tab-casa-amor');
         const btnCombined = document.getElementById('tab-combined');
         
-        const activeClass = "px-3 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100 transition-all whitespace-nowrap";
-        const inactiveClass = "px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all whitespace-nowrap";
+        const activeClass = "px-3 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100 transition-colors whitespace-nowrap";
+        const inactiveClass = "px-3 py-1.5 text-sm font-medium rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap";
 
         btnOriginal.className = (tab === 'original') ? activeClass : inactiveClass;
         btnCasa.className = (tab === 'casa_amor') ? activeClass : inactiveClass;
@@ -649,11 +649,11 @@ const IGNORED_DATA = {
             let iconHtml = '';
             
             if (iconType === 'door') {
-                iconHtml = `<img src="${getIconImageString(SVG_DOOR, color)}" class="w-3.5 h-3.5 mr-1.5 object-contain">`;
+                iconHtml = `<img src="${getIconImageString(SVG_DOOR, color)}" alt="Dumped Icon" class="w-3.5 h-3.5 mr-1.5 object-contain" width="14" height="14">`;
             } else if (iconType === 'bomb') {
-                iconHtml = `<img src="${getIconImageString(SVG_BOMB, color)}" class="w-3.5 h-3.5 mr-1.5 object-contain">`;
+                iconHtml = `<img src="${getIconImageString(SVG_BOMB, color)}" alt="Bombshell Icon" class="w-3.5 h-3.5 mr-1.5 object-contain" width="14" height="14">`;
             } else if (iconType === 'house') {
-                iconHtml = `<img src="${getIconImageString(SVG_HOUSE, color)}" class="w-3.5 h-3.5 mr-1.5 object-contain">`;
+                iconHtml = `<img src="${getIconImageString(SVG_HOUSE, color)}" alt="Casa Amor Icon" class="w-3.5 h-3.5 mr-1.5 object-contain" width="14" height="14">`;
             } else {
                 iconHtml = `<span class="inline-block w-3 h-3 rounded-full mr-1.5 flex-shrink-0" style="background-color: ${color}"></span>`;
             }
