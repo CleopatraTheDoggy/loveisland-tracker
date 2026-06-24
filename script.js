@@ -844,6 +844,11 @@ const IGNORED_DATA = {
                 details.removeAttribute('open');
             } else {
                 details.setAttribute('open', '');
+                
+                // Allow the DOM to render the expanded state, then scroll it into view
+                setTimeout(() => {
+                    details.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }, 50);
             }
         });
 
