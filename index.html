@@ -295,13 +295,14 @@
     </main>
 
     <footer class="w-full bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 transition-colors duration-200 z-20 relative text-xs text-slate-400 dark:text-slate-500">
-        <details id="about-details" class="w-full group cursor-pointer [&_summary::-webkit-details-marker]:hidden">
-            <summary class="p-3 text-center list-none outline-none hover:text-slate-600 dark:hover:text-slate-300 transition-colors select-none flex items-center justify-center gap-1 opacity-80 hover:opacity-100 text-[11px] sm:text-xs">
+        <details id="about-details" class="w-full group [&_summary::-webkit-details-marker]:hidden">
+            <summary class="p-3 text-center list-none outline-none hover:text-slate-600 dark:hover:text-slate-300 transition-colors select-none flex items-center justify-center gap-1 opacity-80 hover:opacity-100 text-[11px] sm:text-xs cursor-pointer relative">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span class="font-medium">About this tracker</span>
+                <span class="hidden group-open:inline-block absolute right-4 text-slate-400 dark:text-slate-500 text-[14px]" aria-hidden="true">&#10005;</span>
             </summary>
             
-            <div class="px-4 pb-4 max-w-3xl mx-auto text-left leading-relaxed text-[11px] sm:text-xs space-y-4">
+            <div class="px-4 pb-4 max-w-3xl mx-auto text-left leading-relaxed text-[11px] sm:text-xs space-y-4 cursor-default">
                 <p class="text-center">Island.Guru is the ultimate live Instagram follower tracker for Love Island USA Season 8. Watch daily statistics, growth charts, and leaderboards for the original cast, bombshells, and Casa Amor islanders. Track every islander's journey with real-time follower counts and trends throughout the show's duration with 100% public data that is updated frequently.</p>
                 
                 <div id="about-faq-area" class="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-700/60">

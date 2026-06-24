@@ -834,15 +834,24 @@ const IGNORED_DATA = {
     function initAboutTracker() {
         const details = document.getElementById('about-details');
         const faqArea = document.getElementById('about-faq-area');
-        if (!details || !faqArea) return;
+        const summary = details ? details.querySelector('summary') : null;
+        if (!details || !faqArea || !summary) return;
+
+        // Force native behavior override for mobile consistency
+        summary.addEventListener('click', (e) => {
+            e.preventDefault(); // Stop native toggle
+            if (details.hasAttribute('open')) {
+                details.removeAttribute('open');
+            } else {
+                details.setAttribute('open', '');
+            }
+        });
 
         // Handle clicks outside or above the FAQ area
         document.addEventListener('click', (e) => {
             if (details.hasAttribute('open')) {
-                const summary = details.querySelector('summary');
-                
-                // If they click the summary itself, the browser handles the toggle natively
-                if (summary && summary.contains(e.target)) return;
+                // Don't trigger outside click logic if tapping the summary element itself
+                if (summary.contains(e.target)) return;
 
                 const faqRect = faqArea.getBoundingClientRect();
                 
@@ -864,10 +873,9 @@ const IGNORED_DATA = {
         document.addEventListener('touchend', (e) => {
             if (details.hasAttribute('open') && e.changedTouches.length > 0) {
                 const touchEndY = e.changedTouches[0].screenY;
-                const summary = details.querySelector('summary');
                 
                 // Don't trigger swipe close if they are just tapping the summary
-                if (summary && summary.contains(e.target)) return;
+                if (summary.contains(e.target)) return;
 
                 // Threshold of 60px down-swipe to ensure it wasn't a mistaken slight scroll
                 if (touchEndY - touchStartY > 60) {
