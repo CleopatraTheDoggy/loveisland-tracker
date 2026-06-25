@@ -144,6 +144,12 @@ const IGNORED_DATA = {
                     setTimeout(() => {
                         heart.style.transition = `opacity ${FADE_DURATION}ms ease-in-out`;
                         heart.style.opacity = '0';
+                        
+                        // Show the static favicon
+                        const staticFavicon = document.getElementById('static-favicon');
+                        if (staticFavicon) {
+                            staticFavicon.style.opacity = '1';
+                        }
                     }, STILL_DURATION);
                 }
             }
