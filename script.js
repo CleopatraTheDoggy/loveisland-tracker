@@ -64,6 +64,22 @@ const IGNORED_DATA = {
 
     let isDark = false;
 
+    // --- Custom Event Tracking Wrapper ---
+    function trackCustomEvent(eventName, eventData = {}) {
+        // Track with Google Analytics (GA4)
+        if (typeof window.gtag === 'function') {
+            window.gtag('event', eventName, eventData);
+        }
+        // Track with Umami
+        if (typeof window.umami !== 'undefined') {
+            if (typeof window.umami.track === 'function') {
+                window.umami.track(eventName, eventData);
+            } else if (typeof window.umami === 'function') {
+                window.umami(eventName);
+            }
+        }
+    }
+
     // --- Animated Logo Initialization ---
     function initAnimatedLogo() {
         const title = document.querySelector('.site-title');
@@ -145,7 +161,6 @@ const IGNORED_DATA = {
                         heart.style.transition = `opacity ${FADE_DURATION}ms ease-in-out`;
                         heart.style.opacity = '0';
                         
-                        // Show the static favicon
                         const staticFavicon = document.getElementById('static-favicon');
                         if (staticFavicon) {
                             staticFavicon.style.opacity = '1';
@@ -170,21 +185,25 @@ const IGNORED_DATA = {
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             isDark = true;
             themeCheckbox.checked = true;
-            setTheme(true);
+            setTheme(true, false);
         } else {
             isDark = false;
             themeCheckbox.checked = false;
-            setTheme(false);
+            setTheme(false, false);
         }
 
         themeCheckbox.addEventListener('change', (e) => {
-            setTheme(e.target.checked);
+            setTheme(e.target.checked, true);
         });
     }
 
-    function setTheme(dark) {
+    function setTheme(dark, userInitiated = true) {
         isDark = dark;
         
+        if (userInitiated) {
+            trackCustomEvent('Toggled-Mode', { mode: dark ? 'dark' : 'light' });
+        }
+
         const textLight = document.getElementById('text-light');
         const textDark = document.getElementById('text-dark');
         const iconSun = document.getElementById('icon-sun');
@@ -224,6 +243,54 @@ const IGNORED_DATA = {
         }
     }
 
+    // --- Dumped Toggle Logic ---
+    function initDumpedToggle() {
+        const dumpedCheckbox = document.getElementById('dumped-toggle-checkbox');
+        if (!dumpedCheckbox) return;
+
+        dumpedCheckbox.addEventListener('change', (e) => {
+            const show = e.target.checked;
+            
+            trackCustomEvent('Toggled-Dumped', { state: show ? 'show' : 'hide' });
+            
+            const textHideDumped = document.getElementById('text-hide-dumped');
+            const textShowDumped = document.getElementById('text-show-dumped');
+            const dumpedThumb = document.getElementById('dumped-thumb');
+
+            if (show) {
+                textHideDumped.classList.add('opacity-0');
+                textShowDumped.classList.remove('opacity-0');
+                // w-[88px] total width. 24px thumb width. 4px left offset. 88 - 24 - 8 = 56px travel.
+                dumpedThumb.style.transform = 'translateX(56px)'; 
+            } else {
+                textHideDumped.classList.remove('opacity-0');
+                textShowDumped.classList.add('opacity-0');
+                dumpedThumb.style.transform = 'translateX(0)';
+            }
+            
+            // Update underlying dataset metadata for persistence across tabs
+            ['original', 'casa_amor', 'combined'].forEach(tab => {
+                globalData[tab].datasets.forEach(ds => {
+                    if (ds.isDumped) {
+                        ds.hidden = !show;
+                    }
+                });
+            });
+
+            // Update current active chart instance visually
+            if (chartInstance) {
+                chartInstance.data.datasets.forEach((ds, i) => {
+                    if (ds.isDumped) {
+                        chartInstance.setDatasetVisibility(i, show);
+                    }
+                });
+                chartInstance.update('none');
+                buildCustomLegend(chartInstance);
+                renderSidebar();
+            }
+        });
+    }
+
     function getIconImageString(path, color) {
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path fill="${color}" d="${path}"/></svg>`;
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
@@ -237,6 +304,8 @@ const IGNORED_DATA = {
 
     async function init() {
         initTheme();
+        initDumpedToggle();
+        
         try {
             const response = await fetch(URL);
             if (!response.ok) throw new Error('Failed to fetch data');
@@ -246,6 +315,10 @@ const IGNORED_DATA = {
             const badge = document.getElementById('status-badge');
             badge.className = 'order-1 lg:order-2 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200 dark:border-green-800 flex items-center gap-2 transition-colors duration-200';
             badge.innerHTML = `<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg><span class="inline">Live & Synced</span>`;
+            
+            // Fire event indicating full load of valid data
+            trackCustomEvent('viewed-data');
+            
         } catch (error) {
             console.error('Error fetching data:', error);
             const badge = document.getElementById('status-badge');
@@ -381,6 +454,10 @@ const IGNORED_DATA = {
         globalData.casa_amor.stats = [];
         globalData.combined.datasets = [];
         globalData.combined.stats = [];
+        
+        // Grab the current state of the dumped toggle to ensure dataset initialization matches UI
+        const dumpedCheckbox = document.getElementById('dumped-toggle-checkbox');
+        const isShowDumpedToggled = dumpedCheckbox ? dumpedCheckbox.checked : false;
 
         for (let cleanName in grouped) {
             const points = grouped[cleanName].points;
@@ -409,6 +486,7 @@ const IGNORED_DATA = {
 
                 const dumpedKey = Object.keys(typeof DUMPED_CONTESTANTS !== 'undefined' ? DUMPED_CONTESTANTS : {}).find(k => k.toLowerCase() === cleanName);
                 let dumpedTime = dumpedKey ? getAdjTime(DUMPED_CONTESTANTS[dumpedKey]) : null;
+                const isDumped = !!dumpedTime;
                 
                 const bombshellKey = Object.keys(typeof BOMBSHELL_CONTESTANTS !== 'undefined' ? BOMBSHELL_CONTESTANTS : {}).find(k => k.toLowerCase() === cleanName);
                 let bombshellTime = bombshellKey ? getAdjTime(BOMBSHELL_CONTESTANTS[bombshellKey]) : null;
@@ -428,7 +506,7 @@ const IGNORED_DATA = {
 
                     let legendIconType = 'circle';
                     if (tabName === 'combined' && isCasaAmor) legendIconType = 'house';
-                    else if (dumpedTime) legendIconType = 'door';
+                    else if (isDumped) legendIconType = 'door';
                     else if (bombshellTime) legendIconType = 'bomb';
 
                     points.forEach((pt, idx) => {
@@ -440,7 +518,7 @@ const IGNORED_DATA = {
                             pointIsBomb = true;
                             innerHasBombshell = true;
                         }
-                        if (dumpedTime && pt.x.getTime() >= dumpedTime && !innerHasDumped) {
+                        if (isDumped && pt.x.getTime() >= dumpedTime && !innerHasDumped) {
                             pointIsDoor = true;
                             innerHasDumped = true;
                         }
@@ -467,7 +545,8 @@ const IGNORED_DATA = {
                     return {
                         label: `@${username}`,
                         data: points,
-                        hidden: !!dumpedTime, 
+                        hidden: isDumped ? !isShowDumpedToggled : false, 
+                        isDumped: isDumped,
                         customHue: customHue,
                         legendIconType: legendIconType,
                         pointStyleTypes: pointStyleTypes,
@@ -480,7 +559,7 @@ const IGNORED_DATA = {
                         segment: {
                             borderDash: ctx => {
                                 const p0Time = points[ctx.p0DataIndex].x.getTime();
-                                if (dumpedTime && p0Time >= dumpedTime) return [6, 4];
+                                if (isDumped && p0Time >= dumpedTime) return [6, 4];
                                 if (bombshellTime && p0Time < bombshellTime) return [6, 4];
                                 if (isCasaAmor && casaAmorTime && p0Time < casaAmorTime) return [6, 4];
                                 return undefined;
@@ -843,6 +922,8 @@ const IGNORED_DATA = {
         const summary = details ? details.querySelector('summary') : null;
         if (!details || !faqArea || !summary) return;
 
+        let faqViewed = false;
+
         // Force native behavior override for mobile consistency
         summary.addEventListener('click', (e) => {
             e.preventDefault(); // Stop native toggle
@@ -850,6 +931,12 @@ const IGNORED_DATA = {
                 details.removeAttribute('open');
             } else {
                 details.setAttribute('open', '');
+                
+                // Track first open
+                if (!faqViewed) {
+                    trackCustomEvent('Viewed-FAQ-Summary');
+                    faqViewed = true;
+                }
                 
                 // Allow the DOM to render the expanded state, then scroll it into view
                 setTimeout(() => {
@@ -896,12 +983,27 @@ const IGNORED_DATA = {
         }, { passive: true });
     }
     
+    // Setup generic trackers
+    function initLinkTrackers() {
+        const container = document.getElementById('ranking-container');
+        if (container) {
+            container.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (link && link.href && link.href.includes('instagram.com')) {
+                    trackCustomEvent('Redirected-To-Instagram', { url: link.href });
+                }
+            });
+        }
+    }
+    
     document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('tab-original').addEventListener('click', () => switchTab('original'));
-        document.getElementById('tab-casa-amor').addEventListener('click', () => switchTab('casa_amor'));
-        document.getElementById('tab-combined').addEventListener('click', () => switchTab('combined'));
+        document.getElementById('tab-original').addEventListener('click', () => { trackCustomEvent('Switched-To-Original'); switchTab('original'); });
+        document.getElementById('tab-casa-amor').addEventListener('click', () => { trackCustomEvent('Switched-To-Casa-Amor'); switchTab('casa_amor'); });
+        document.getElementById('tab-combined').addEventListener('click', () => { trackCustomEvent('Switched-To-Combined'); switchTab('combined'); });
+        
         init();
         initAnimatedLogo();
         initAboutTracker();
+        initLinkTrackers();
     });
 })();

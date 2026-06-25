@@ -154,7 +154,6 @@
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-7BQ3P16R9P"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -255,7 +254,7 @@
 
             <div class="order-2 lg:order-1 flex items-center transform scale-[0.85] origin-right lg:scale-100 pointer-events-auto">
                 <input type="checkbox" id="theme-toggle-checkbox" class="sr-only" />
-                <label for="theme-toggle-checkbox" class="neo-toggle relative flex items-center cursor-pointer w-28 h-10 rounded-full transition-colors duration-300 overflow-hidden">
+                <label for="theme-toggle-checkbox" class="neo-toggle relative flex items-center cursor-pointer w-28 h-10 rounded-full transition-colors duration-300 overflow-hidden" title="Toggle Light/Dark Mode">
                     <span class="absolute right-3 text-[10px] font-bold text-slate-400 tracking-wide transition-opacity duration-300 leading-tight text-center z-0" id="text-light">LIGHT<br>MODE</span>
                     <span class="absolute left-3 text-[10px] font-bold text-slate-400 tracking-wide transition-opacity duration-300 opacity-0 leading-tight text-center z-0" id="text-dark">DARK<br>MODE</span>
                     <div id="theme-thumb" class="neo-thumb absolute left-1 w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-300 z-10">
@@ -275,10 +274,24 @@
                 
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-3 flex-shrink-0">
                     <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Followers Over Time</h2>
-                    <div class="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-lg self-start sm:self-auto overflow-x-auto border border-transparent dark:border-slate-700 transition-colors duration-200">
-                        <button id="tab-original" class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap">Original</button>
-                        <button id="tab-casa-amor" class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap">Casa Amor</button>
-                        <button id="tab-combined" class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap">Combined</button>
+                    
+                    <div class="flex items-center self-start sm:self-auto gap-2 lg:gap-3 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-hide">
+                        <div class="flex-shrink-0 flex items-center pointer-events-auto">
+                            <input type="checkbox" id="dumped-toggle-checkbox" class="sr-only" />
+                            <label for="dumped-toggle-checkbox" class="neo-toggle relative flex items-center cursor-pointer w-[88px] h-8 rounded-full transition-colors duration-300 overflow-hidden flex-shrink-0" title="Show/Hide Dumped Contestants">
+                                <span class="absolute right-2 text-[8px] font-bold text-slate-400 tracking-wider transition-opacity duration-300 leading-tight text-center z-0" id="text-hide-dumped">HIDE<br>DUMPED</span>
+                                <span class="absolute left-2 text-[8px] font-bold text-slate-400 tracking-wider transition-opacity duration-300 opacity-0 leading-tight text-center z-0" id="text-show-dumped">SHOW<br>DUMPED</span>
+                                <div id="dumped-thumb" class="neo-thumb absolute left-1 w-6 h-6 rounded-full flex items-center justify-center transition-transform duration-300 z-10">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16h2V5h10v16h2ZM7 5v16l8-2V7L7 5ZM13 11.5a1 1 0 110 2 1 1 0 010-2Z"/></svg>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex flex-shrink-0 bg-slate-100 dark:bg-slate-900/50 p-1 rounded-lg border border-transparent dark:border-slate-700 transition-colors duration-200">
+                            <button id="tab-original" class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap">Original</button>
+                            <button id="tab-casa-amor" class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap">Casa Amor</button>
+                            <button id="tab-combined" class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap">Combined</button>
+                        </div>
                     </div>
                 </div>
 
