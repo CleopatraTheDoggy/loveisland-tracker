@@ -64,14 +64,13 @@ const IGNORED_DATA = {
 
     let isDark = false;
     let hasViewedData = false;
+    let hasSelectedDataInCurrentTab = false;
 
     // --- Custom Event Tracking Wrapper ---
     function trackCustomEvent(eventName, eventData = {}) {
-        // Track with Google Analytics (GA4)
         if (typeof window.gtag === 'function') {
             window.gtag('event', eventName, eventData);
         }
-        // Track with Umami
         if (typeof window.umami !== 'undefined') {
             if (typeof window.umami.track === 'function') {
                 window.umami.track(eventName, eventData);
@@ -261,7 +260,6 @@ const IGNORED_DATA = {
             if (show) {
                 textShowKicked.classList.add('opacity-0');
                 textHideKicked.classList.remove('opacity-0');
-                // w-[88px] total width. 24px thumb width. 4px left offset. 88 - 24 - 8 = 56px travel.
                 dumpedThumb.style.transform = 'translateX(56px)'; 
             } else {
                 textShowKicked.classList.remove('opacity-0');
@@ -269,7 +267,6 @@ const IGNORED_DATA = {
                 dumpedThumb.style.transform = 'translateX(0)';
             }
             
-            // Update underlying dataset metadata for persistence across tabs
             ['original', 'casa_amor', 'combined'].forEach(tab => {
                 globalData[tab].datasets.forEach(ds => {
                     if (ds.isDumped) {
@@ -278,7 +275,6 @@ const IGNORED_DATA = {
                 });
             });
 
-            // Update current active chart instance visually
             if (chartInstance) {
                 chartInstance.data.datasets.forEach((ds, i) => {
                     if (ds.isDumped) {
@@ -317,6 +313,17 @@ const IGNORED_DATA = {
             badge.className = 'order-1 lg:order-2 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200 dark:border-green-800 flex items-center gap-2 transition-colors duration-200';
             badge.innerHTML = `<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg><span class="inline">Live & Synced</span>`;
             
+            // Fired once successfully when the UI is "Live & Synced"
+            if (!hasViewedData) {
+                trackCustomEvent('viewed-data');
+                hasViewedData = true;
+            }
+            
+            // Fired once after user has stayed on the page for 30s
+            setTimeout(() => {
+                trackCustomEvent('Engaged-User');
+            }, 30000);
+            
         } catch (error) {
             console.error('Error fetching data:', error);
             const badge = document.getElementById('status-badge');
@@ -333,6 +340,17 @@ const IGNORED_DATA = {
 
     function switchTab(tab) {
         currentTab = tab;
+        hasSelectedDataInCurrentTab = false; // Reset tooltip tracking on tab switch
+        
+        let tooltipEl = document.querySelector('.custom-tooltip');
+        if (tooltipEl) tooltipEl.style.opacity = 0;
+        
+        if (chartInstance) {
+            chartInstance.tooltip.setActiveElements([], {x:0, y:0});
+            chartInstance.setActiveElements([]);
+            chartInstance.update('none');
+        }
+
         const btnOriginal = document.getElementById('tab-original');
         const btnCasa = document.getElementById('tab-casa-amor');
         const btnCombined = document.getElementById('tab-combined');
@@ -453,7 +471,6 @@ const IGNORED_DATA = {
         globalData.combined.datasets = [];
         globalData.combined.stats = [];
         
-        // Grab the current state of the dumped toggle to ensure dataset initialization matches UI
         const dumpedCheckbox = document.getElementById('dumped-toggle-checkbox');
         const isShowDumpedToggled = dumpedCheckbox ? dumpedCheckbox.checked : false;
 
@@ -502,10 +519,11 @@ const IGNORED_DATA = {
                     let innerHasBombshell = false;
                     let innerHasCasaAmorEntry = false;
 
+                    // Fixed bug: Check dumped status last to overwrite any icons
                     let legendIconType = 'circle';
                     if (tabName === 'combined' && isCasaAmor) legendIconType = 'house';
-                    else if (isDumped) legendIconType = 'door';
-                    else if (bombshellTime) legendIconType = 'bomb';
+                    if (bombshellTime) legendIconType = 'bomb';
+                    if (isDumped) legendIconType = 'door';
 
                     points.forEach((pt, idx) => {
                         let pointIsBomb = false;
@@ -527,14 +545,12 @@ const IGNORED_DATA = {
                         }
                         
                         let currentPointType = 'circle';
-                        if (pointIsDoor) currentPointType = 'door';
-                        else if (pointIsBomb) currentPointType = 'bomb';
                         
-                        if (tabName === 'combined' && isCasaAmor && pointIsCasaAmorEntry) {
-                            currentPointType = 'house';
-                        } else if (idx === 0 && tabName === 'combined' && isCasaAmor && !casaAmorTime) {
+                        if (tabName === 'combined' && isCasaAmor && (pointIsCasaAmorEntry || (idx === 0 && !casaAmorTime))) {
                             currentPointType = 'house';
                         }
+                        if (pointIsBomb) currentPointType = 'bomb';
+                        if (pointIsDoor) currentPointType = 'door';
 
                         pointStyleTypes.push(currentPointType);
                         pointRadii.push(currentPointType === 'circle' ? 1 : 7);
@@ -719,7 +735,7 @@ const IGNORED_DATA = {
 
         datasets.forEach((dataset, i) => {
             const item = document.createElement('div');
-            item.className = `flex items-center cursor-pointer text-xs lg:text-sm font-medium transition-opacity duration-200 px-1 py-1 lg:px-2 ${textColorClass}`;
+            item.className = `flex items-center cursor-pointer text-xs lg:text-sm font-medium transition-opacity duration-200 p-2 sm:px-2 sm:py-1 m-0.5 touch-manipulation select-none ${textColorClass}`;
             
             if (!chart.isDatasetVisible(i)) {
                 item.classList.add('opacity-40', 'line-through');
@@ -777,6 +793,16 @@ const IGNORED_DATA = {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                onClick: (e, elements, chart) => {
+                    // Close tooltip if clicking empty space on the graph
+                    if (elements.length === 0) {
+                        chart.tooltip.setActiveElements([], {x:0, y:0});
+                        chart.setActiveElements([]);
+                        chart.update('none');
+                        let tooltipEl = document.querySelector('.custom-tooltip');
+                        if (tooltipEl) tooltipEl.style.opacity = 0;
+                    }
+                },
                 interaction: {
                     mode: 'nearest',
                     axis: 'x',
@@ -792,10 +818,10 @@ const IGNORED_DATA = {
                         boxWidth: 8,
                         
                         external: function(context) {
-                            // Track first tooltip display (works for both mobile/desktop trigger)
-                            if (!hasViewedData && context.tooltip.opacity > 0) {
-                                trackCustomEvent('selected-data');
-                                hasViewedData = true;
+                            // Selected-Data Tracking Event per Tab
+                            if (!hasSelectedDataInCurrentTab && context.tooltip.opacity > 0) {
+                                trackCustomEvent('Selected-Data');
+                                hasSelectedDataInCurrentTab = true;
                             }
                             
                             if (window.innerWidth >= 1024) {
