@@ -34,7 +34,7 @@ const CASA_AMOR = {
 };
 
 const EXPELLED = [
-    "alannahkeyser" // Expected to be expelled soon.
+    "alannahkeyser", // Expected to be expelled soon.
     "traetaylorr" // Media-misinformed to have stayed on Casa Amor.
 ];
 
