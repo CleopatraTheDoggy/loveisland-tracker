@@ -63,6 +63,7 @@ const IGNORED_DATA = {
     };
 
     let isDark = false;
+    let hasViewedData = false;
 
     // --- Custom Event Tracking Wrapper ---
     function trackCustomEvent(eventName, eventData = {}) {
@@ -253,18 +254,18 @@ const IGNORED_DATA = {
             
             trackCustomEvent('Toggled-Dumped', { state: show ? 'show' : 'hide' });
             
-            const textHideDumped = document.getElementById('text-hide-dumped');
-            const textShowDumped = document.getElementById('text-show-dumped');
+            const textShowKicked = document.getElementById('text-show-kicked');
+            const textHideKicked = document.getElementById('text-hide-kicked');
             const dumpedThumb = document.getElementById('dumped-thumb');
 
             if (show) {
-                textHideDumped.classList.add('opacity-0');
-                textShowDumped.classList.remove('opacity-0');
+                textShowKicked.classList.add('opacity-0');
+                textHideKicked.classList.remove('opacity-0');
                 // w-[88px] total width. 24px thumb width. 4px left offset. 88 - 24 - 8 = 56px travel.
                 dumpedThumb.style.transform = 'translateX(56px)'; 
             } else {
-                textHideDumped.classList.remove('opacity-0');
-                textShowDumped.classList.add('opacity-0');
+                textShowKicked.classList.remove('opacity-0');
+                textHideKicked.classList.add('opacity-0');
                 dumpedThumb.style.transform = 'translateX(0)';
             }
             
@@ -315,9 +316,6 @@ const IGNORED_DATA = {
             const badge = document.getElementById('status-badge');
             badge.className = 'order-1 lg:order-2 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200 dark:border-green-800 flex items-center gap-2 transition-colors duration-200';
             badge.innerHTML = `<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg><span class="inline">Live & Synced</span>`;
-            
-            // Fire event indicating full load of valid data
-            trackCustomEvent('viewed-data');
             
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -794,6 +792,12 @@ const IGNORED_DATA = {
                         boxWidth: 8,
                         
                         external: function(context) {
+                            // Track first tooltip display (works for both mobile/desktop trigger)
+                            if (!hasViewedData && context.tooltip.opacity > 0) {
+                                trackCustomEvent('selected-data');
+                                hasViewedData = true;
+                            }
+                            
                             if (window.innerWidth >= 1024) {
                                 let tooltipEl = document.querySelector('.custom-tooltip');
                                 if (tooltipEl) tooltipEl.style.opacity = 0;
