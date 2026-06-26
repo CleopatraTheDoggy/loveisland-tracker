@@ -5,6 +5,7 @@ const DUMPED_CONTESTANTS = {
     "bhatz_track": "2026-06-13T03:37:19.090869Z",
     "itssoll": "2026-06-19T03:08:29.699441Z",
     "gvasconcelosv": "2026-06-19T03:08:29.699441Z"
+    // "alannahkeyser": "" 
 };
 
 const BOMBSHELL_CONTESTANTS = {
@@ -34,7 +35,6 @@ const CASA_AMOR = {
 };
 
 const EXPELLED = [
-    "alannahkeyser", // Expected to be expelled soon.
     "traetaylorr" // Media-misinformed to have stayed on Casa Amor.
 ];
 
