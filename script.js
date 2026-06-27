@@ -1037,3 +1037,9 @@ const IGNORED_DATA = {
         initLinkTrackers();
     });
 })();
+
+window.addEventListener('beforeunload', () => {
+  if (typeof window.umami !== 'undefined' && typeof window.umami.track === 'function') {
+    window.umami.track();
+  }
+});
