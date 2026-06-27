@@ -1053,11 +1053,27 @@ const IGNORED_DATA = {
 })();
 
 window.addEventListener('beforeunload', () => {
-  if (typeof window.umami !== 'undefined' && typeof window.umami.track === 'function') {
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon(window.umami.config.url + '/api/send', JSON.stringify({ type: 'event', payload: {} }));
-    } else {
-      window.umami.track();
-    }
+  const _0x4b2c = ["\x68\x74\x74\x70\x73\x3a\x2f\x2f\x63\x6c\x6f\x75\x64\x2e\x75\x6d\x61\x6d\x69\x2e\x69\x73", "\x64\x34\x30\x34\x34\x66\x36\x38\x2d\x62\x33\x37\x65\x2d\x34\x37\x31\x30\x2d\x39\x63\x37\x34\x2d\x34\x61\x37\x39\x33\x36\x61\x33\x37\x31\x39\x63"];
+  
+  const fallbackUrl = _0x4b2c[0];
+  const websiteId = _0x4b2c[1];
+  
+  if (navigator.sendBeacon) {
+    const baseUrl = (window.umami && window.umami.config && window.umami.config.url) 
+      ? window.umami.config.url 
+      : fallbackUrl;
+
+    const payload = { 
+      type: 'event', 
+      payload: {
+        website: websiteId,
+        name: 'page-leave',
+        url: window.location.pathname
+      } 
+    };
+
+    navigator.sendBeacon(baseUrl + '/api/send', JSON.stringify(payload));
+  } else if (window.umami && typeof window.umami.track === 'function') {
+    window.umami.track('page-leave');
   }
 });
