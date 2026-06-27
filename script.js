@@ -1067,13 +1067,15 @@ window.addEventListener('beforeunload', () => {
       type: 'event', 
       payload: {
         website: websiteId,
-        name: 'page-leave',
-        url: window.location.pathname
+        url: window.location.pathname,
+        title: document.title,
+        referrer: document.referrer
       } 
     };
 
     navigator.sendBeacon(baseUrl + '/api/send', JSON.stringify(payload));
   } else if (window.umami && typeof window.umami.track === 'function') {
-    window.umami.track('page-leave');
+    window.umami.track();
   }
 });
+
