@@ -1,11 +1,19 @@
 // =================================================================
 
 const DUMPED_CONTESTANTS = {
+    // OG
     "parm3_sean": "2026-06-08T03:05:25.446900Z",
     "bhatz_track": "2026-06-13T03:37:19.090869Z",
     "itssoll": "2026-06-19T03:08:29.699441Z",
     "gvasconcelosv": "2026-06-19T03:08:29.699441Z",
-    "alannahkeyser": "2026-06-26T02:00:11.745000Z" 
+    // Casa Amor
+    "alannahkeyser": "2026-06-26T02:00:11.745000Z",
+    "amoracachee": "2026-06-27T02:00:23.405000Z",
+    "sydney_eugene": "2026-06-27T02:00:23.405000Z",
+    "carl_witness_lee": "2026-06-27T02:00:23.405000Z",
+    "chaynehra": "2026-06-27T02:00:23.405000Z",
+    "coreysawyerjr": "2026-06-27T02:00:23.405000Z",
+    "_ronniegunter": "2026-06-27T02:00:23.405000Z"
 };
 
 const BOMBSHELL_CONTESTANTS = {
