@@ -276,11 +276,15 @@ const IGNORED_DATA = {
             });
 
             if (chartInstance) {
+                // Instantly halt any active scale/chart animations to ensure axes recalculate correctly
+                chartInstance.stop();
+                
                 chartInstance.data.datasets.forEach((ds, i) => {
                     if (ds.isDumped) {
                         chartInstance.setDatasetVisibility(i, show);
                     }
                 });
+                
                 chartInstance.update('none');
                 buildCustomLegend(chartInstance);
                 renderSidebar();
@@ -519,11 +523,10 @@ const IGNORED_DATA = {
                     let innerHasBombshell = false;
                     let innerHasCasaAmorEntry = false;
 
-                    // Fixed bug: Check dumped status last to overwrite any icons
                     let legendIconType = 'circle';
-                    if (tabName === 'combined' && isCasaAmor) legendIconType = 'house';
-                    if (bombshellTime) legendIconType = 'bomb';
-                    if (isDumped) legendIconType = 'door';
+                    if (isDumped) legendIconType = 'door'; // Highest Priority
+                    else if (tabName === 'combined' && isCasaAmor) legendIconType = 'house';
+                    else if (bombshellTime) legendIconType = 'bomb';
 
                     points.forEach((pt, idx) => {
                         let pointIsBomb = false;
@@ -550,7 +553,7 @@ const IGNORED_DATA = {
                             currentPointType = 'house';
                         }
                         if (pointIsBomb) currentPointType = 'bomb';
-                        if (pointIsDoor) currentPointType = 'door';
+                        if (pointIsDoor) currentPointType = 'door'; // Highest Priority
 
                         pointStyleTypes.push(currentPointType);
                         pointRadii.push(currentPointType === 'circle' ? 1 : 7);
@@ -735,7 +738,7 @@ const IGNORED_DATA = {
 
         datasets.forEach((dataset, i) => {
             const item = document.createElement('div');
-            item.className = `flex items-center cursor-pointer text-xs lg:text-sm font-medium transition-opacity duration-200 p-2 sm:px-2 sm:py-1 m-0.5 touch-manipulation select-none ${textColorClass}`;
+            item.className = `flex items-center cursor-pointer text-[11px] sm:text-xs lg:text-sm font-medium transition-opacity duration-200 px-1.5 py-1.5 lg:px-2 lg:py-1 touch-manipulation select-none ${textColorClass}`;
             
             if (!chart.isDatasetVisible(i)) {
                 item.classList.add('opacity-40', 'line-through');
@@ -760,6 +763,9 @@ const IGNORED_DATA = {
             item.innerHTML = `${iconHtml}<span>${dataset.label}</span>`;
 
             item.onclick = () => {
+                // Instantly halt any active scale/chart animations to ensure axes recalculate correctly
+                chart.stop();
+                
                 chart.setDatasetVisibility(i, !chart.isDatasetVisible(i));
                 chart.update('none'); 
                 buildCustomLegend(chart);
@@ -1038,13 +1044,9 @@ const IGNORED_DATA = {
     });
 })();
 
+// Add to the very end of script.js
 window.addEventListener('beforeunload', () => {
   if (typeof window.umami !== 'undefined' && typeof window.umami.track === 'function') {
-    // This is the most reliable way to send data right as the browser closes
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon(window.umami.config.url + '/api/send', JSON.stringify({ type: 'event', payload: {} }));
-    } else {
-      window.umami.track();
-    }
+    window.umami.track();
   }
 });
