@@ -1044,9 +1044,12 @@ const IGNORED_DATA = {
     });
 })();
 
-// Add to the very end of script.js
 window.addEventListener('beforeunload', () => {
   if (typeof window.umami !== 'undefined' && typeof window.umami.track === 'function') {
-    window.umami.track();
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(window.umami.config.url + '/api/send', JSON.stringify({ type: 'event', payload: {} }));
+    } else {
+      window.umami.track();
+    }
   }
 });
