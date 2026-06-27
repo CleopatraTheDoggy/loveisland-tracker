@@ -1040,6 +1040,11 @@ const IGNORED_DATA = {
 
 window.addEventListener('beforeunload', () => {
   if (typeof window.umami !== 'undefined' && typeof window.umami.track === 'function') {
-    window.umami.track();
+    // This is the most reliable way to send data right as the browser closes
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(window.umami.config.url + '/api/send', JSON.stringify({ type: 'event', payload: {} }));
+    } else {
+      window.umami.track();
+    }
   }
 });
