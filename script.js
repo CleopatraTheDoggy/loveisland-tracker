@@ -16,6 +16,11 @@ const DUMPED_CONTESTANTS = {
     "_ronniegunter": "2026-06-27T02:00:23.405000Z"
 };
 
+const VOTED_BACK = {
+    "amoracachee": "2026-06-29T02:01:48.861654Z",
+    "carl_witness_lee": "2026-06-29T02:01:48.861654Z"
+};
+
 const BOMBSHELL_CONTESTANTS = {
     "itssoll": "2026-06-09T03:05:34.434731Z",
     "calebbmcdaniell": "2026-06-09T03:05:34.434731Z",
@@ -61,6 +66,7 @@ const IGNORED_DATA = {
     const SVG_BOMB = "M11 21A7 7 0 1011 7A7 7 0 0011 21ZM9 5h4v2H9V5ZM12 5c0-2 2-3 4-3v1c-1.5 0-3 .5-3 2H12ZM17 1l1.5 1.5L17 4l-1.5-1.5L17 1Z";
     const SVG_DOOR = "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16h2V5h10v16h2ZM7 5v16l8-2V7L7 5ZM13 11.5a1 1 0 110 2 1 1 0 010-2Z";
     const SVG_HOUSE = "M12 3L9 6v-2h-2v4L4 11h2v9h4v-6h4v6h4v-9h2Z";
+    const SVG_VOTED = "M17,1H7A2,2,0,0,0,5,3V21a2,2,0,0,0,2,2H17a2,2,0,0,0,2,-2V3A2,2,0,0,0,17,1Zm0,2V4H7V3Zm0,18H7V20H17ZM17,18H7V6H17ZM9.5,12.2l1.3,1.3,3.7,-3.7l1,1l-4.7,4.7l-2.3,-2.3l1,-1Z";
     
     let chartInstance = null;
     let currentTab = 'original';
@@ -277,7 +283,7 @@ const IGNORED_DATA = {
             
             ['original', 'casa_amor', 'combined'].forEach(tab => {
                 globalData[tab].datasets.forEach(ds => {
-                    if (ds.isDumped) {
+                    if (ds.isToggleableDumped) {
                         ds.hidden = !show;
                     }
                 });
@@ -288,7 +294,7 @@ const IGNORED_DATA = {
                 chartInstance.stop();
                 
                 chartInstance.data.datasets.forEach((ds, i) => {
-                    if (ds.isDumped) {
+                    if (ds.isToggleableDumped) {
                         chartInstance.setDatasetVisibility(i, show);
                     }
                 });
@@ -515,6 +521,10 @@ const IGNORED_DATA = {
                 let dumpedTime = dumpedKey ? getAdjTime(DUMPED_CONTESTANTS[dumpedKey]) : null;
                 const isDumped = !!dumpedTime;
                 
+                const votedBackKey = Object.keys(typeof VOTED_BACK !== 'undefined' ? VOTED_BACK : {}).find(k => k.toLowerCase() === cleanName);
+                let votedBackTime = votedBackKey ? getAdjTime(VOTED_BACK[votedBackKey]) : null;
+                const isVotedBack = !!votedBackTime;
+
                 const bombshellKey = Object.keys(typeof BOMBSHELL_CONTESTANTS !== 'undefined' ? BOMBSHELL_CONTESTANTS : {}).find(k => k.toLowerCase() === cleanName);
                 let bombshellTime = bombshellKey ? getAdjTime(BOMBSHELL_CONTESTANTS[bombshellKey]) : null;
                 
@@ -530,9 +540,11 @@ const IGNORED_DATA = {
                     let innerHasDumped = false;
                     let innerHasBombshell = false;
                     let innerHasCasaAmorEntry = false;
+                    let innerHasVotedBack = false;
 
                     let legendIconType = 'circle';
-                    if (isDumped) legendIconType = 'door'; // Highest Priority
+                    if (isVotedBack) legendIconType = 'voted'; // Highest Priority
+                    else if (isDumped) legendIconType = 'door'; 
                     else if (tabName === 'combined' && isCasaAmor) legendIconType = 'house';
                     else if (bombshellTime) legendIconType = 'bomb';
 
@@ -540,6 +552,7 @@ const IGNORED_DATA = {
                         let pointIsBomb = false;
                         let pointIsDoor = false;
                         let pointIsCasaAmorEntry = false;
+                        let pointIsVotedBack = false;
                         
                         if (bombshellTime && pt.x.getTime() >= bombshellTime && !innerHasBombshell) {
                             pointIsBomb = true;
@@ -549,7 +562,10 @@ const IGNORED_DATA = {
                             pointIsDoor = true;
                             innerHasDumped = true;
                         }
-                        
+                        if (isVotedBack && pt.x.getTime() >= votedBackTime && !innerHasVotedBack) {
+                            pointIsVotedBack = true;
+                            innerHasVotedBack = true;
+                        }
                         if (casaAmorTime && pt.x.getTime() >= casaAmorTime && !innerHasCasaAmorEntry) {
                             pointIsCasaAmorEntry = true;
                             innerHasCasaAmorEntry = true;
@@ -561,7 +577,8 @@ const IGNORED_DATA = {
                             currentPointType = 'house';
                         }
                         if (pointIsBomb) currentPointType = 'bomb';
-                        if (pointIsDoor) currentPointType = 'door'; // Highest Priority
+                        if (pointIsDoor) currentPointType = 'door'; 
+                        if (pointIsVotedBack) currentPointType = 'voted'; // Highest priority point
 
                         pointStyleTypes.push(currentPointType);
                         pointRadii.push(currentPointType === 'circle' ? 1 : 7);
@@ -570,8 +587,8 @@ const IGNORED_DATA = {
                     return {
                         label: `@${username}`,
                         data: points,
-                        hidden: isDumped ? !isShowDumpedToggled : false, 
-                        isDumped: isDumped,
+                        hidden: (isDumped && !isVotedBack) ? !isShowDumpedToggled : false, 
+                        isToggleableDumped: isDumped && !isVotedBack,
                         customHue: customHue,
                         legendIconType: legendIconType,
                         pointStyleTypes: pointStyleTypes,
@@ -584,7 +601,12 @@ const IGNORED_DATA = {
                         segment: {
                             borderDash: ctx => {
                                 const p0Time = points[ctx.p0DataIndex].x.getTime();
-                                if (isDumped && p0Time >= dumpedTime) return [6, 4];
+                                if (isDumped && p0Time >= dumpedTime) {
+                                    if (isVotedBack && p0Time >= votedBackTime) {
+                                        return undefined;
+                                    }
+                                    return [6, 4];
+                                }
                                 if (bombshellTime && p0Time < bombshellTime) return [6, 4];
                                 if (isCasaAmor && casaAmorTime && p0Time < casaAmorTime) return [6, 4];
                                 return undefined;
@@ -637,11 +659,13 @@ const IGNORED_DATA = {
                 const bombIcon = getIconImage(SVG_BOMB, color);
                 const doorIcon = getIconImage(SVG_DOOR, color);
                 const houseIcon = getIconImage(SVG_HOUSE, color);
+                const votedIcon = getIconImage(SVG_VOTED, color);
 
                 ds.pointStyle = ds.pointStyleTypes.map(type => {
                     if(type === 'door') return doorIcon;
                     if(type === 'bomb') return bombIcon;
                     if(type === 'house') return houseIcon;
+                    if(type === 'voted') return votedIcon;
                     return 'circle';
                 });
             });
@@ -764,6 +788,8 @@ const IGNORED_DATA = {
                 iconHtml = `<img src="${getIconImageString(SVG_BOMB, color)}" alt="Bombshell Icon" class="w-3.5 h-3.5 mr-1.5 object-contain" width="14" height="14">`;
             } else if (iconType === 'house') {
                 iconHtml = `<img src="${getIconImageString(SVG_HOUSE, color)}" alt="Casa Amor Icon" class="w-3.5 h-3.5 mr-1.5 object-contain" width="14" height="14">`;
+            } else if (iconType === 'voted') {
+                iconHtml = `<img src="${getIconImageString(SVG_VOTED, color)}" alt="Voted Back Icon" class="w-3.5 h-3.5 mr-1.5 object-contain" width="14" height="14">`;
             } else {
                 iconHtml = `<span class="inline-block w-3 h-3 rounded-full mr-1.5 flex-shrink-0" style="background-color: ${color}"></span>`;
             }
@@ -1078,4 +1104,3 @@ window.addEventListener('beforeunload', () => {
     window.umami.track();
   }
 });
-
